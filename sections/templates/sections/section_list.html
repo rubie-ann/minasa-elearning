@@ -1,0 +1,39 @@
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <title>Educational Sections</title>
+</head>
+<body>
+    <h1>Educational Sections</h1>
+
+    {% for section in sections %}
+        <h2>{{ section.title }}</h2>
+        <p><strong>Category:</strong> {{ section.category }}</p>
+        <p>{{ section.description }}</p>
+        <hr>
+    {% empty %}
+        <p>No sections available yet.</p>
+    {% endfor %}
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sections</title>
+</head>
+<body>
+    <h1>Sections</h1>
+    <ul>
+        {% for section in sections %}
+            <li>
+                <h2>{{ section.title }} ({{ section.category }})</h2>
+                <p>{{ section.description }}</p>
+            </li>
+        {% empty %}
+            <li>No sections yet.</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
+
