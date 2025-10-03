@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Minasa E-Learning{% endblock %}</title>
+    {% load static %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{% static 'css/auth.css' %}" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <!-- <div class="container">
+            <a class="navbar-brand text-green" href="{% url 'home' %}">Minasa E-Learning</a>
+            <div class="navbar-nav ms-auto">
+                {% if user.is_authenticated %}
+                    <span class="navbar-text me-3">Hello, {{ user.username }}!</span>
+                    <a class="btn btn-orange btn-sm" href="{% url 'logout' %}">Logout</a>
+                {% else %}
+                    <a class="btn btn-yellow btn-sm me-2" href="{% url 'login' %}">Login</a>
+                    <a class="btn btn-green btn-sm" href="{% url 'signup' %}">Sign Up</a>
+                {% endif %}
+            </div>
+        </div> -->
+    </nav>
+    <div class="container mt-4">
+        {% block content %}{% endblock %}
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
