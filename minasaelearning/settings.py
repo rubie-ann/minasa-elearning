@@ -55,6 +55,7 @@ ROOT_URLCONF = 'minasaelearning.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / 'templates'],
         'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -115,7 +116,18 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
+import os
+
 STATIC_URL = 'static/'
+
+# Add this if not already present
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "minasaelearning", "static"),
+]
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'minasaelearning' / 'media'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

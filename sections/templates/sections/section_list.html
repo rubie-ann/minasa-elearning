@@ -1,39 +1,47 @@
-<!-- <!DOCTYPE html>
-<html>
-<head>
-    <title>Educational Sections</title>
-</head>
-<body>
-    <h1>Educational Sections</h1>
-
-    {% for section in sections %}
-        <h2>{{ section.title }}</h2>
-        <p><strong>Category:</strong> {{ section.category }}</p>
-        <p>{{ section.description }}</p>
-        <hr>
-    {% empty %}
-        <p>No sections available yet.</p>
-    {% endfor %}
-</body>
-</html> -->
-
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Sections</title>
+    <title>Educational Sections</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/section_css.css' %}">
 </head>
 <body>
-    <h1>Sections</h1>
-    <ul>
+    <div class="tabtitle">
+        <nav class="navbar">
+            <a href="{% url 'home' %}" class="{% if request.path == '/' %}active{% endif %}">Home</a>
+            <a href="{% url 'section_list' %}" class="{% if request.path == '/sections/' %}active{% endif %}">Educational</a>
+            <a href="{% url 'search' %}" class="{% if request.path == '/search/' %}active{% endif %}">Search</a>
+            <a href="{% url 'activities' %}" class="{% if request.path == '/activities/' %}active{% endif %}">Activities</a>
+            <a href="{% url 'profile' %}" class="{% if request.path == '/profile/' %}active{% endif %}">Profile</a>
+            <a href="{% url 'about' %}" class="{% if request.path == '/about/' %}active{% endif %}">About</a>
+        </nav>
+    </div><br><br><br><br>
+    
+    {% for category, sections in grouped_sections.items %}
+        <div class="titlediv">{{ category }}</div>
         {% for section in sections %}
-            <li>
-                <h2>{{ section.title }} ({{ section.category }})</h2>
-                <p>{{ section.description }}</p>
-            </li>
+            <div class="sectionholder {% if forloop.counter|divisibleby:2 %}reverse{% endif %}">
+                <div class="sectionimgholder">
+                    {% if section.image %}
+                        <img src="{{ section.image.url }}" alt="{{ section.title }}" class="imgsection">
+                    {% else %}
+                        <p>No image available.</p>
+                    {% endif %}
+                </div>
+                <div class="sectioninfoholder">
+                    <h3>{{ section.title }}</h3>
+                    <p>{{ section.description }}</p>
+                </div>
+            </div>
         {% empty %}
-            <li>No sections yet.</li>
+            <div>No sections in this category.</div>
         {% endfor %}
-    </ul>
+    {% endfor %}
+    
 </body>
 </html>
+
+
+
+
 
