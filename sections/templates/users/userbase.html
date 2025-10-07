@@ -1,0 +1,24 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/section_css.css' %}">
+</head>
+<body>
+    <div class="tabtitle">
+        <nav class="navbar">
+            {% with request.path as current_path %}
+                <a href="{% url 'home' %}" class="{% if current_path == '/users/home/' %}active{% endif %}">Home</a>
+                <a href="{% url 'educationalsection' %}" class="{% if current_path == '/users/educationalsection/' %}active{% endif %}">Educational</a>
+                <a href="{% url 'search' %}" class="{% if current_path == '/users/search/' %}active{% endif %}">Search</a>
+                <a href="{% url 'activities' %}" class="{% if current_path == '/users/activities/' %}active{% endif %}">Activities</a>
+                <a href="{% url 'profile' %}" class="{% if current_path == '/users/profile/' %}active{% endif %}">Profile</a>
+                <a href="{% url 'about' %}" class="{% if current_path == '/users/about/' %}active{% endif %}">About</a>
+            {% endwith %}
+        </nav>
+    </div>
+
+    {% block content %}{% endblock %}
+</body>
+</html>

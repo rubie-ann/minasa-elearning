@@ -55,8 +55,7 @@ ROOT_URLCONF = 'minasaelearning.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],  # your main templates folder
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

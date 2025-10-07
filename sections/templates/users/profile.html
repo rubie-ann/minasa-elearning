@@ -1,0 +1,50 @@
+{% extends "users/userbase.html" %}
+{% load static %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <h2>My Profile</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div style="color: green; margin-bottom: 10px;">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+
+    {% if section.image %}
+        <img src="{{ section.image.url }}" alt="{{ section.title }}" class="imgsection">
+    {% else %}
+        <input type="file" name="image" accept="image/*">
+    {% endif %}
+
+
+    <form method="post" action="">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" value="{{ user.username }}" disabled>
+        </div>
+
+        <div class="form-group">
+            <label>First Name</label>
+            <input type="text" name="first_name" value="{{ user.first_name }}" required>
+        </div>
+
+        <div class="form-group">
+            <label>Last Name</label>
+            <input type="text" name="last_name" value="{{ user.last_name }}" required>
+        </div>
+
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="email" value="{{ user.email }}" required>
+        </div>
+
+        <button type="submit">Update Profile</button>
+    </form>
+</div>
+{% endblock %}

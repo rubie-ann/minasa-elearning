@@ -1,0 +1,30 @@
+{% extends "users/userbase.html" %}
+{% load static %}
+
+{% block title %}Educational Sections{% endblock %}
+
+{% block content %}
+<br><br><br><br>
+
+{% for category, sections in grouped_sections.items %}
+    <div class="titlediv">{{ category }}</div>
+    {% for section in sections %}
+        <div class="sectionholder {% if forloop.counter|divisibleby:2 %}reverse{% endif %}">
+            <div class="sectionimgholder">
+                {% if section.image %}
+                    <img src="{{ section.image.url }}" alt="{{ section.title }}" class="imgsection">
+                {% else %}
+                    <p>No image available.</p>
+                {% endif %}
+            </div>
+            <div class="sectioninfoholder">
+                <h3>{{ section.title }}</h3>
+                <p>{{ section.description }}</p>
+            </div>
+        </div>
+    {% empty %}
+        <div>No sections in this category.</div>
+    {% endfor %}
+{% endfor %}
+
+{% endblock %}

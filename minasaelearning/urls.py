@@ -22,11 +22,12 @@ from sections import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('sections/', include('sections.urls')),
-    path('', views.section_list, name='home'),
+    path('users/', include('sections.urls')),
+    path('', views.login_view, name='login'),  # default page is login
     path('accounts/', include('django.contrib.auth.urls')),
     path('accounts/signup/', views.signup, name='signup'),
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+

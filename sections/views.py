@@ -1,39 +1,68 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import login
 from .models import Section
 from collections import defaultdict
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages\
 
-def section_list(request):
-    # Fetch all sections and order by category and id
+def login_view(request):
+    if request.method == "POST":
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            return redirect('home')
+    else:
+        form = AuthenticationForm()
+    
+    return render(request, "registration/login.html", {"form": form})
+
+
+
+def educationalsection(request):
+
     sections = Section.objects.all().order_by('category', 'id')
     
-    # Group sections by category
+    
     grouped_sections = defaultdict(list)
     for section in sections:
         grouped_sections[section.category].append(section)
     
-    # Convert to regular dict for template
+    
     grouped_sections = dict(grouped_sections)
     
-    return render(request, "sections/section_list.html", {
+    return render(request, "users/educationalsection.html", {
         "grouped_sections": grouped_sections
     })
 
 def home_view(request):
-    return render(request, 'home.html')
+    return render(request, 'users/home.html')
 
 def search_view(request):
-    return render(request, 'search.html')
+    return render(request, 'users/search.html')
 
 def activities_view(request):
-    return render(request, 'activities.html')
+    return render(request, 'users/activities.html')
 
+@login_required
 def profile_view(request):
-    return render(request, 'profile.html')
+    user = request.user
+
+    if request.method == "POST":
+        user.first_name = request.POST.get("first_name", "")
+        user.last_name = request.POST.get("last_name", "")
+        user.email = request.POST.get("email", "")
+        user.save()
+        messages.success(request, "Profile updated successfully!")
+        return redirect("profile")
+
+    return render(request, "users/profile.html", {"user": user})
+
 
 def about_view(request):
-    return render(request, 'about.html')
+    return render(request, 'users/about.html')
 
 def signup(request):
     if request.method == 'POST':
