@@ -5,7 +5,8 @@ from collections import defaultdict
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
-from django.contrib import messages\
+from django.contrib import messages
+from django.conf import settings
 
 def login_view(request):
     if request.method == "POST":
@@ -46,6 +47,11 @@ def search_view(request):
 def activities_view(request):
     return render(request, 'users/activities.html')
 
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.conf import settings  # <-- make sure to import this
+
 @login_required
 def profile_view(request):
     user = request.user
@@ -54,11 +60,19 @@ def profile_view(request):
         user.first_name = request.POST.get("first_name", "")
         user.last_name = request.POST.get("last_name", "")
         user.email = request.POST.get("email", "")
+        # handle profile image if uploaded
+        if 'image' in request.FILES:
+            user.profile.image = request.FILES['image']
+            user.profile.save()
         user.save()
         messages.success(request, "Profile updated successfully!")
         return redirect("profile")
 
-    return render(request, "users/profile.html", {"user": user})
+    return render(request, "users/profile.html", {
+        "user": user,
+        "MEDIA_URL": settings.MEDIA_URL  # <-- add this so template can use it
+    })
+
 
 
 def about_view(request):

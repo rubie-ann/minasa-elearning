@@ -5,47 +5,65 @@
 
 {% block content %}
 <div class="profile-container">
+
     <h2>My Profile</h2>
 
     {% if messages %}
         {% for message in messages %}
-            <div style="color: green; margin-bottom: 10px;">{{ message }}</div>
+            <div class="alert-success">{{ message }}</div>
         {% endfor %}
     {% endif %}
 
-
-    {% if section.image %}
-        <img src="{{ section.image.url }}" alt="{{ section.title }}" class="imgsection">
-    {% else %}
-        <img src="" class="imgsection">
-        <!-- <input type="file" name="image" accept="image/*"> -->
-    {% endif %}
-
-
-    <form method="post" action="">
+    <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
 
-        <div class="form-group">
-            <label>Username</label>
-            <input type="text" value="{{ user.username }}" disabled>
+        <div class="profile-top-card">
+            <div class="profile-pic-wrapper">
+                <img id="profile-pic-preview" src="{% if user.profile.image %}{{ user.profile.image.url }}{% else %}{{ MEDIA_URL }}images/user.png{% endif %}" class="profile-pic">
+                <label for="id_image" class="overlay">
+                    <span class="plus-icon">+</span>
+                </label>
+                <input type="file" id="id_image" name="image" accept="image/*" style="display:none">
+            </div>
+            <h3>{{ user.first_name }} {{ user.last_name }}</h3>
         </div>
 
-        <div class="form-group">
-            <label>First Name</label>
-            <input type="text" name="first_name" value="{{ user.first_name }}" required>
+        <div class="profile-details-card">
+            <div class="form-group">
+                <label>First Name</label>
+                <input type="text" name="first_name" value="{{ user.first_name }}">
+            </div>
+            <div class="form-group">
+                <label>Last Name</label>
+                <input type="text" name="last_name" value="{{ user.last_name }}">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" value="{{ user.email }}">
+            </div>
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" value="{{ user.username }}" disabled>
+            </div><br><br><br>
+            <button type="submit" class="btn-primary">Update</button>
         </div>
-
-        <div class="form-group">
-            <label>Last Name</label>
-            <input type="text" name="last_name" value="{{ user.last_name }}" required>
-        </div>
-
-        <div class="form-group">
-            <label>Email</label>
-            <input type="email" name="email" value="{{ user.email }}" required>
-        </div>
-
-        <button type="submit">Update Profile</button>
     </form>
 </div>
+
+<script>
+const input = document.getElementById('id_image');
+const preview = document.getElementById('profile-pic-preview');
+
+input.addEventListener('change', function() {
+    const file = this.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result; // preview only
+        }
+        reader.readAsDataURL(file);
+    }
+});
+</script>
+
 {% endblock %}
