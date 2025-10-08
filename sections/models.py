@@ -23,12 +23,25 @@ class Section(models.Model):
     def __str__(self):
         return f"{self.title} ({self.category})"
     
+    
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='images/', blank=True, null=True)
+    image = models.ImageField(
+        upload_to='images/',
+        blank=True,
+        null=True,
+        default='images/user.png'
+    )
 
     def __str__(self):
         return self.user.username
+
+# class Profile(models.Model):
+#     user = models.OneToOneField(User, on_delete=models.CASCADE)
+#     image = models.ImageField(upload_to='images/', blank=True, null=True)
+
+#     def __str__(self):
+#         return self.user.username
 
 # Automatically create/update profile when User is saved
 @receiver(post_save, sender=User)
