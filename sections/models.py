@@ -16,6 +16,9 @@ class Section(models.Model):
     description = models.TextField()
     image = models.ImageField(upload_to='images/', blank=True, null=True)
 
+    attachment = models.FileField(upload_to='attachments/', blank=True, null=True)
+    link = models.URLField(blank=True, null=True)
+    
     class Meta:
         verbose_name = "Educational Section"
         verbose_name_plural = "Educational Sections"
@@ -36,14 +39,7 @@ class Profile(models.Model):
     def __str__(self):
         return self.user.username
 
-# class Profile(models.Model):
-#     user = models.OneToOneField(User, on_delete=models.CASCADE)
-#     image = models.ImageField(upload_to='images/', blank=True, null=True)
 
-#     def __str__(self):
-#         return self.user.username
-
-# Automatically create/update profile when User is saved
 @receiver(post_save, sender=User)
 def create_or_update_user_profile(sender, instance, created, **kwargs):
     if created:

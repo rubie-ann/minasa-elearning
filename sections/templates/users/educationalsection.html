@@ -5,6 +5,7 @@
 
 {% block content %}
 <br><br><br><br>
+<input type="text" placeholder=" Search Content..." class="searchcontent">
 
 {% for category, sections in grouped_sections.items %}
     <div class="titlediv">{{ category }}</div>
@@ -19,12 +20,88 @@
             </div>
             <div class="sectioninfoholder">
                 <h3>{{ section.title }}</h3>
-                <p>{{ section.description }}</p>
+                <p>{{ section.description|truncatewords:50 }}</p>
+                <div class="seemorebtn view-btn"
+                     data-title="{{ section.title }}"
+                     data-description="{{ section.description }}"
+                     data-category="{{ section.category }}"
+                     data-image="{% if section.image %}{{ section.image.url }}{% endif %}"
+                     data-attachment="{% if section.attachment %}{{ section.attachment.url }}{% endif %}"
+                     data-attachmentname="{% if section.attachment %}{{ section.attachment.name|cut:'attachments/' }}{% endif %}"
+                     data-link="{{ section.link }}">View</div>
             </div>
         </div>
     {% empty %}
         <div>No sections in this category.</div>
     {% endfor %}
 {% endfor %}
+
+<!-- 🔹 POPUP MODAL -->
+<div id="sectionModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 id="modalTitle"></h2>
+        <p id="modalCategory"></p>
+        <div id="modalImageContainer"></div>
+        <p id="modalDescription"></p>
+        <p><strong>Attachment:</strong> <span id="modalAttachmentContainer"></span></p>
+        <p><strong>Link:</strong> <span id="modalLinkContainer"></span></p>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const modal = document.getElementById("sectionModal");
+    const closeBtn = document.querySelector(".close");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalCategory = document.getElementById("modalCategory");
+    const modalImageContainer = document.getElementById("modalImageContainer");
+    const modalDescription = document.getElementById("modalDescription");
+    const modalAttachmentContainer = document.getElementById("modalAttachmentContainer");
+    const modalLinkContainer = document.getElementById("modalLinkContainer");
+
+    document.querySelectorAll(".view-btn").forEach(btn => {
+        btn.addEventListener("click", function () {
+            const title = this.dataset.title;
+            const description = this.dataset.description;
+            const category = this.dataset.category;
+            const image = this.dataset.image;
+            const attachment = this.dataset.attachment;
+            const attachmentName = this.dataset.attachmentname;
+            const link = this.dataset.link;
+
+            modalTitle.textContent = title;
+            modalCategory.textContent = "Category: " + category;
+            modalDescription.textContent = description;
+
+            // 🔸 Image
+            if (image) {
+                modalImageContainer.innerHTML = `<img src="${image}" alt="${title}">`;
+            } else {
+                modalImageContainer.innerHTML = `<p><em>No image available.</em></p>`;
+            }
+
+            // 🔸 Attachment (only clickable if real file)
+            if (attachment && attachmentName) {
+                modalAttachmentContainer.innerHTML = `<a href="${attachment}" target="_blank">${attachmentName}</a>`;
+            } else {
+                modalAttachmentContainer.textContent = "No attachment available";
+            }
+
+            // 🔸 Link (only clickable if valid URL)
+            if (link && link.trim().toLowerCase() !== "none" && link.trim() !== "") {
+                modalLinkContainer.innerHTML = `<a href="${link}" target="_blank">${link}</a>`;
+            } else {
+                modalLinkContainer.textContent = "No link provided";
+            }
+
+            modal.style.display = "block";
+        });
+    });
+
+    closeBtn.onclick = () => modal.style.display = "none";
+    window.onclick = (e) => { if (e.target === modal) modal.style.display = "none"; };
+});
+</script>
 
 {% endblock %}
