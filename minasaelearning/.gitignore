@@ -2,11 +2,6 @@
 *.pyc
 __pycache__/
 
-# Django
-db.sqlite3
-/static/
-/media/
-
 # Virtual environment
 venv/
 
