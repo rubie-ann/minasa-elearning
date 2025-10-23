@@ -7,6 +7,11 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.conf import settings
+from django.shortcuts import render
+from .models import FestivalEvent
+from datetime import date, datetime
+
+
 
 def login_view(request):
     if request.method == "POST":
@@ -47,10 +52,89 @@ def search_view(request):
 def activities_view(request):
     return render(request, 'users/activities.html')
 
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.conf import settings  # <-- make sure to import this
+
+
+
+def find_minasa(request):
+    return render(request, 'users/find_minasa.html')
+
+# def festival_calendar(request):
+#     selected_type = request.GET.get('type', 'All')
+#     today = date.today()
+
+#     if selected_type == 'All':
+#         events = FestivalEvent.objects.all().order_by('date', 'time')
+#     else:
+#         events = FestivalEvent.objects.filter(event_type=selected_type).order_by('date', 'time')
+
+#     grouped_events = {}
+#     next_event = None
+
+#     for event in events:
+#         day = event.date.strftime('%B %d, %Y')
+#         if day not in grouped_events:
+#             grouped_events[day] = []
+#         grouped_events[day].append(event)
+
+#         # Find the next upcoming event
+#         event_datetime = datetime.combine(event.date, event.time or datetime.min.time())
+#         if event_datetime > datetime.now() and not next_event:
+#             next_event = event
+
+#     event_types = ['All'] + [choice[0] for choice in FestivalEvent.EVENT_TYPES]
+
+#     return render(request, 'users/festival_calendar.html', {
+#         'grouped_events': grouped_events,
+#         'event_types': event_types,
+#         'selected_type': selected_type,
+#         'next_event': next_event,
+#     })
+
+
+def festival_calendar(request):
+    selected_type = request.GET.get('type', 'All')
+    today = date.today()
+
+    now = datetime.now()  # current date and time
+
+    if selected_type == 'All':
+        events = FestivalEvent.objects.filter(
+            date__gte=today  # only events today or later
+        ).order_by('date', 'time')
+    else:
+        events = FestivalEvent.objects.filter(
+            event_type=selected_type,
+            date__gte=today
+        ).order_by('date', 'time')
+
+    grouped_events = {}
+    next_event = None
+
+    for event in events:
+        event_datetime = datetime.combine(event.date, event.time or datetime.min.time())
+
+        if event_datetime < now:
+            continue
+
+        day = event.date.strftime('%B %d, %Y')
+        if day not in grouped_events:
+            grouped_events[day] = []
+        grouped_events[day].append(event)
+
+        if event_datetime > now and not next_event:
+            next_event = event
+
+    event_types = ['All'] + [choice[0] for choice in FestivalEvent.EVENT_TYPES]
+
+    return render(request, 'users/festival_calendar.html', {
+        'grouped_events': grouped_events,
+        'event_types': event_types,
+        'selected_type': selected_type,
+        'next_event': next_event,
+    })
+
+def growth_timeline(request):
+    return render(request, 'users/growth_timeline.html')
 
 @login_required
 def profile_view(request):

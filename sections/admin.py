@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import Section
 from django.utils.html import format_html
+from .models import FestivalEvent
 
 @admin.register(Section)
 class SectionAdmin(admin.ModelAdmin):
@@ -19,3 +20,5 @@ class SectionAdmin(admin.ModelAdmin):
             return format_html('<a href="{}" target="_blank">{}</a>', obj.link, obj.link)
         return "-"
     link_display.short_description = "Link"
+
+admin.site.register(FestivalEvent)

@@ -1,0 +1,83 @@
+{% extends "users/userbase.html" %}
+{% load static %}
+{% block title %}Minasa Festival Calendar{% endblock %}
+
+{% block content %}
+<br><br><br>
+
+{% if next_event %}
+<div class="countdown-container">
+  <h3>Next Event: {{ next_event.name }}</h3>
+  <p><strong>{{ next_event.date|date:"F d, Y" }}{% if next_event.time %} | {{ next_event.time|time:"g:i A" }}{% endif %}</strong></p>
+  <div id="countdown"></div>
+</div>
+{% endif %}
+
+<form method="get" class="filter-form">
+  <label for="type">Filter by Event Type:</label>
+  <select name="type" id="type" onchange="this.form.submit()">
+    {% for etype in event_types %}
+      <option value="{{ etype }}" {% if selected_type == etype %}selected{% endif %}>{{ etype }}</option>
+    {% endfor %}
+  </select>
+</form>
+
+<div class="calendar-container">
+  {% for date, events in grouped_events.items %}
+    <div class="day-block">
+      <h3 class="festival-date">{{ date }}</h3>
+      {% for event in events %}
+        <div class="festival-card">
+          {% if event.image %}
+            <img src="{{ event.image.url }}" alt="{{ event.name }}" class="festival-image">
+          {% endif %}
+          <div class="festival-info">
+            <h4>{{ event.name }} <span class="event-type">[{{ event.event_type }}]</span></h4>
+            {% if event.time %}<p><strong>🕒 Time:</strong> {{ event.time|time:"g:i A" }}</p>{% endif %}
+            {% if event.location %}<p><strong>📍 Location:</strong> {{ event.location }}</p>{% endif %}
+            {% if event.map_link %}
+              <a href="{{ event.map_link }}" target="_blank" class="map-link">🗺️ View on Map</a>
+            {% endif %}
+            <p>{{ event.description }}</p>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% empty %}
+    <p class="text-center">No festival events found for this category.</p>
+  {% endfor %}
+</div>
+
+<style>
+
+</style>
+
+{% if next_event %}
+<script>
+  const countdownElement = document.getElementById("countdown");
+
+  const eventDateString = "{{ next_event.date|date:'Y-m-d' }}{% if next_event.time %}T{{ next_event.time|time:'H:i:s' }}{% else %}T00:00:00{% endif %}";
+  const eventDate = new Date(eventDateString);
+
+  function updateCountdown() {
+    const now = new Date();
+    const diff = eventDate - now;
+
+    if (diff <= 0) {
+      countdownElement.textContent = "🎉 Happening Now!";
+      return;
+    }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const mins = Math.floor((diff / (1000 * 60)) % 60);
+    const secs = Math.floor((diff / 1000) % 60);
+
+    countdownElement.textContent = `${days}d ${hours}h ${mins}m ${secs}s`;
+  }
+
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+</script>
+{% endif %}
+{% endblock %}

@@ -19,8 +19,29 @@
                 {% endif %}
             </div>
             <div class="sectioninfoholder">
-                <h3>{{ section.title }}</h3>
-                <p>{{ section.description|truncatewords:50 }}</p>
+                <h3 class="section-title">{{ section.title }}</h3>
+                <p class="section-description">{{ section.description|truncatewords:50 }}</p>
+
+                {% if section.attachment %}
+                    {% with section.attachment.name|lower as filename %}
+                        <p class="section-attachment">
+                            <a href="{{ section.attachment.url }}" target="_blank">
+                                {% if '.pdf' in filename %}
+                                    <img src="{% static 'images/pdf.png' %}" alt="PDF" class="file-icon">
+                                {% elif '.doc' in filename or '.docx' in filename %}
+                                    <img src="{% static 'images/docx.png' %}" alt="Word" class="file-icon">
+                                {% elif '.ppt' in filename or '.pptx' in filename %}
+                                    <img src="{% static 'images/ppt.png' %}" alt="PowerPoint" class="file-icon">
+                                {% else %}
+                                    <img src="{% static 'images/file-icon.png' %}" alt="File" class="file-icon">
+                                {% endif %}
+                                {{ section.attachment.name|cut:'attachments/' }}
+                            </a>
+                        </p>
+                    {% endwith %}
+                {% endif %}
+
+
                 <div class="seemorebtn view-btn"
                      data-title="{{ section.title }}"
                      data-description="{{ section.description }}"
@@ -28,7 +49,8 @@
                      data-image="{% if section.image %}{{ section.image.url }}{% endif %}"
                      data-attachment="{% if section.attachment %}{{ section.attachment.url }}{% endif %}"
                      data-attachmentname="{% if section.attachment %}{{ section.attachment.name|cut:'attachments/' }}{% endif %}"
-                     data-link="{{ section.link }}">View</div>
+                     data-link="{{ section.link }}">View
+                </div>
             </div>
         </div>
     {% empty %}
@@ -60,6 +82,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const modalAttachmentContainer = document.getElementById("modalAttachmentContainer");
     const modalLinkContainer = document.getElementById("modalLinkContainer");
 
+    // View modal
     document.querySelectorAll(".view-btn").forEach(btn => {
         btn.addEventListener("click", function () {
             const title = this.dataset.title;
@@ -74,25 +97,22 @@ document.addEventListener('DOMContentLoaded', function () {
             modalCategory.textContent = "Category: " + category;
             modalDescription.textContent = description;
 
-            // 🔸 Image
             if (image) {
                 modalImageContainer.innerHTML = `<img src="${image}" alt="${title}">`;
             } else {
                 modalImageContainer.innerHTML = `<p><em>No image available.</em></p>`;
             }
 
-            // 🔸 Attachment (only clickable if real file)
             if (attachment && attachmentName) {
                 modalAttachmentContainer.innerHTML = `<a href="${attachment}" target="_blank">${attachmentName}</a>`;
             } else {
                 modalAttachmentContainer.textContent = "No attachment available";
             }
 
-            // 🔸 Link (only clickable if valid URL)
             if (link && link.trim().toLowerCase() !== "none" && link.trim() !== "") {
                 modalLinkContainer.innerHTML = `<a href="${link}" target="_blank">${link}</a>`;
             } else {
-                modalLinkContainer.textContent = "No link provided";
+                modalLinkContainer.textContent = "No link available";
             }
 
             modal.style.display = "block";
@@ -101,7 +121,41 @@ document.addEventListener('DOMContentLoaded', function () {
 
     closeBtn.onclick = () => modal.style.display = "none";
     window.onclick = (e) => { if (e.target === modal) modal.style.display = "none"; };
-});
+
+const searchInput = document.querySelector('.searchcontent');
+
+searchInput.addEventListener('keyup', function() {
+    const query = this.value.toLowerCase();
+
+    document.querySelectorAll('.titlediv').forEach(titleDiv => {
+        let hasVisibleSection = false;
+        let section = titleDiv.nextElementSibling;
+
+        while (section && section.classList.contains('sectionholder')) {
+            const title = section.querySelector('h3').textContent.toLowerCase();
+            const description = section.querySelector('.section-description').textContent.toLowerCase();
+            const attachmentElement = section.querySelector('.section-attachment a');
+            const attachmentName = attachmentElement ? attachmentElement.textContent.toLowerCase() : '';
+
+            if (
+                title.includes(query) ||
+                description.includes(query) ||
+                attachmentName.includes(query) ||
+                query === ''
+            ) {
+                section.style.display = 'flex';
+                hasVisibleSection = true;
+            } else {
+                section.style.display = 'none';
+            }
+
+            section = section.nextElementSibling;
+            if (section && section.classList.contains('titlediv')) break;
+        }
+
+        titleDiv.style.display = hasVisibleSection ? 'block' : 'none';
+    });
+})});
 </script>
 
 {% endblock %}

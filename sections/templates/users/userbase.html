@@ -11,12 +11,17 @@
             {% with request.path as current_path %}
                 <a href="{% url 'home' %}" class="{% if current_path == '/users/home/' %}active{% endif %}">Home</a>
                 <a href="{% url 'educationalsection' %}" class="{% if current_path == '/users/educationalsection/' %}active{% endif %}">Educational</a>
-                <a href="{% url 'search' %}" class="{% if current_path == '/users/search/' %}active{% endif %}">Search</a>
                 <a href="{% url 'activities' %}" class="{% if current_path == '/users/activities/' %}active{% endif %}">Activities</a>
-                <a href="{% url 'profile' %}" class="{% if current_path == '/users/profile/' %}active{% endif %}">Profile</a>
+                <a href="{% url 'find_minasa' %}" class="{% if current_path == '/users/find-minasa/' %}active{% endif %}">Find Minasa Products</a>
+                <a href="{% url 'festival_calendar' %}" class="{% if current_path == '/users/festival-calendar/' %}active{% endif %}">Festival Calendar</a>
+                <a href="{% url 'growth_timeline' %}" class="{% if current_path == '/users/growth-timeline/' %}active{% endif %}">Growth Timeline</a>
+                <!-- <a href="{% url 'profile' %}" class="{% if current_path == '/users/profile/' %}active{% endif %}">Profile</a> -->
                 <a href="{% url 'about' %}" class="{% if current_path == '/users/about/' %}active{% endif %}">About</a>
             {% endwith %}
         </nav>
+        <a href="{% url 'profile' %}" class="nav-profile-pic">
+            <img src="{% if user.profile.image %}{{ user.profile.image.url }}{% else %}{{ MEDIA_URL }}images/user.png{% endif %}" alt="Profile Picture">
+        </a>
     </div>
 
     {% block content %}{% endblock %}

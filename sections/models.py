@@ -45,3 +45,27 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
     if created:
         Profile.objects.create(user=instance)
     instance.profile.save()
+
+
+class FestivalEvent(models.Model):
+    EVENT_TYPES = [
+        ('Parade', 'Parade'),
+        ('Competition', 'Competition'),
+        ('Concert', 'Concert'),
+        ('Exhibit', 'Exhibit'),
+        ('Trade Fair', 'Trade Fair'),
+        ('Religious', 'Religious'),
+        ('Other', 'Other'),
+    ]
+
+    name = models.CharField(max_length=200)
+    event_type = models.CharField(max_length=50, choices=EVENT_TYPES, default='Other')
+    description = models.TextField()
+    date = models.DateField()
+    time = models.TimeField(blank=True, null=True)
+    location = models.CharField(max_length=200, blank=True, null=True)
+    map_link = models.URLField(blank=True, null=True)
+    image = models.ImageField(upload_to='festival_events/', blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.event_type})"
