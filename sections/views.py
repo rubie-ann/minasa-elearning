@@ -193,7 +193,11 @@ def search_view(request):
     return render(request, 'users/search.html')
 
 def activities_view(request):
-    return render(request, 'users/activities.html')
+    quizzes = Quiz.objects.all().order_by('-created_at')
+    context = {
+        'quizzes': quizzes,
+    }
+    return render(request, 'users/activities.html', context)
 
 
 
@@ -649,6 +653,151 @@ def adminpage_minasa_products(request):
     if request.user.username == 'admin' or request.user.is_superuser:
         return render(request, 'adminpage/adminpage-minasa-products.html')
     return redirect('home')
+
+@login_required
+def quiz_view(request, quiz_id):
+    if request.user.username == 'admin' or request.user.is_superuser:
+        quiz = get_object_or_404(Quiz, id=quiz_id)
+        questions = quiz.questions.all().order_by('order')
+        context = {
+            'quiz': quiz,
+            'questions': questions,
+        }
+        return render(request, 'adminpage/quiz_view.html', context)
+    return redirect('home')
+
+@login_required
+def quiz_edit(request, quiz_id):
+    if request.user.username == 'admin' or request.user.is_superuser:
+        quiz = get_object_or_404(Quiz, id=quiz_id)
+        if request.method == 'POST':
+            # Handle quiz update
+            quiz.title = request.POST.get('quiz_title')
+            quiz.description = request.POST.get('quiz_description')
+            quiz.save()
+
+            # Delete existing questions and answers
+            quiz.questions.all().delete()
+
+            # Process updated questions
+            question_texts = request.POST.getlist('question_text')
+            correct_answers = []
+            for i in range(len(question_texts)):
+                correct_answers.append(request.POST.get(f'correct_answer_{i}'))
+
+            for i, question_text in enumerate(question_texts):
+                if question_text.strip():
+                    question = Question.objects.create(
+                        quiz=quiz,
+                        text=question_text,
+                        order=i + 1
+                    )
+
+                    # Get answer options for this question
+                    option_a = request.POST.get(f'option_a_{i}')
+                    option_b = request.POST.get(f'option_b_{i}')
+                    option_c = request.POST.get(f'option_c_{i}')
+                    option_d = request.POST.get(f'option_d_{i}')
+
+                    # Create answers
+                    answers_data = [
+                        (option_a, 'A'),
+                        (option_b, 'B'),
+                        (option_c, 'C'),
+                        (option_d, 'D')
+                    ]
+
+                    for answer_text, option in answers_data:
+                        if answer_text and answer_text.strip():
+                            is_correct = (correct_answers[i] == option) if correct_answers[i] else False
+                            Answer.objects.create(
+                                question=question,
+                                text=answer_text,
+                                is_correct=is_correct
+                            )
+
+            messages.success(request, f'Quiz "{quiz.title}" has been updated successfully!')
+            return redirect('adminpage-activities')
+
+        # Prepare data for editing
+        questions = quiz.questions.all().order_by('order')
+        questions_data = []
+        for question in questions:
+            answers = question.answers.all()
+            answer_dict = {}
+            correct_answer = None
+            for answer in answers:
+                if answer.is_correct:
+                    correct_answer = 'A' if answer.text == answers[0].text else 'B' if answer.text == answers[1].text else 'C' if answer.text == answers[2].text else 'D'
+                if len(answers) > 0 and answer == answers[0]:
+                    answer_dict['A'] = answer.text
+                elif len(answers) > 1 and answer == answers[1]:
+                    answer_dict['B'] = answer.text
+                elif len(answers) > 2 and answer == answers[2]:
+                    answer_dict['C'] = answer.text
+                elif len(answers) > 3 and answer == answers[3]:
+                    answer_dict['D'] = answer.text
+            questions_data.append({
+                'text': question.text,
+                'answers': answer_dict,
+                'correct': correct_answer
+            })
+
+        context = {
+            'quiz': quiz,
+            'questions_data': questions_data,
+        }
+        return render(request, 'adminpage/quiz_edit.html', context)
+    return redirect('home')
+
+@login_required
+def quiz_delete(request, quiz_id):
+    if request.user.username == 'admin' or request.user.is_superuser:
+        quiz = get_object_or_404(Quiz, id=quiz_id)
+        if request.method == 'POST':
+            quiz_title = quiz.title
+            quiz.delete()
+            messages.success(request, f'Quiz "{quiz_title}" has been deleted successfully!')
+            return redirect('adminpage-activities')
+        context = {
+            'quiz': quiz,
+        }
+        return render(request, 'adminpage/quiz_delete.html', context)
+    return redirect('home')
+
+def quiz_api(request, quiz_id):
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+    questions = quiz.questions.all().order_by('order')
+
+    quiz_data = {
+        'id': quiz.id,
+        'title': quiz.title,
+        'description': quiz.description,
+        'questions': []
+    }
+
+    for question in questions:
+        answers = question.answers.all().order_by('id')
+        question_data = {
+            'id': question.id,
+            'text': question.text,
+            'answers': [],
+            'correct_answer': None
+        }
+
+        for answer in answers:
+            question_data['answers'].append({
+                'text': answer.text,
+                'is_correct': answer.is_correct
+            })
+            if answer.is_correct:
+                # Find which option this is (A, B, C, D)
+                answer_index = list(answers).index(answer)
+                question_data['correct_answer'] = chr(65 + answer_index)  # A=0, B=1, etc.
+
+        quiz_data['questions'].append(question_data)
+
+    return JsonResponse(quiz_data)
 
 def signup(request):
     if request.method == 'POST':

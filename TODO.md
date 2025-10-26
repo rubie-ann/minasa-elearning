@@ -1,0 +1,8 @@
+- [x] Add URL patterns for quiz view, edit, delete in sections/urls.py
+- [x] Add view functions for quiz_view, quiz_edit, quiz_delete in sections/views.py
+- [x] Create template for viewing quiz details
+- [x] Create template for editing quiz
+- [x] Update adminpage-activities.html to make View, Edit, Delete buttons functional
+- [x] Implement user-facing quiz functionality (activities.html)
+- [x] Add API endpoint for quiz data (quiz_api view)
+- [x] Test the CRUD functionality

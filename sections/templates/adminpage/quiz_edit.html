@@ -1,0 +1,294 @@
+{% extends "users/base.html" %}
+{% load static %}
+
+{% block title %}Edit Quiz{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<style>
+    body {
+        background-color: #f4f6f9 !important;
+        margin: 0;
+        padding: 0;
+    }
+    
+    body .container {
+        background-color: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+    }
+
+    .logo-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .logo-container img {
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+    
+    .logo-container img:hover {
+        transform: scale(1.05);
+    }
+</style>
+<link rel="stylesheet" href="{% static 'css/adminside.css' %}">
+
+<div class="admin-sidebar">
+    <div class="sidebar-header">
+        <div class="logo-container">
+            <img src="/media/images/logo.png" alt="Minasa Festival Logo" style="max-width: 80px; height: auto;" />
+        </div>
+        <h2>Admin Panel</h2>
+    </div>
+    <ul class="admin-nav">
+        <li><a href="{% url 'adminpage-admin-dashboard' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+        <li><a href="{% url 'adminpage-user-management' %}"><i class="fas fa-users"></i> User Management</a></li>
+        <li><a href="{% url 'adminpage-content-manager' %}"><i class="fas fa-layer-group"></i> Content Manager</a></li>
+        <li><a href="{% url 'adminpage-activities' %}" class="active"><i class="fas fa-calendar"></i> Activities</a></li>
+        <li><a href="{% url 'adminpage-festival-calendar' %}"><i class="fas fa-star"></i> Events</a></li>
+    </ul>
+    <div class="admin-actions">
+        <div class="admin-user-info">
+            <p><strong>{{ user.username }}</strong></p>
+            <p>{{ user.email|default:"No email" }}</p>
+        </div>
+        <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </form>
+    </div>
+</div>
+
+<div class="admin-content">
+    <div class="admin-header">
+        <h1>Edit Quiz: {{ quiz.title }}</h1>
+        <a href="{% url 'adminpage-activities' %}" class="btn btn-secondary">Back to Activities</a>
+    </div>
+    
+    <div class="admin-panels">
+        <section class="panel">
+            <h2>Edit Quiz</h2>
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form id="editQuizForm" method="post" action="{% url 'quiz-edit' quiz.id %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="quizTitle" class="form-label">Quiz Title</label>
+                            <input type="text" class="form-control" id="quizTitle" name="quiz_title" value="{{ quiz.title }}" placeholder="Enter quiz title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="quizDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="quizDescription" name="quiz_description" rows="3" placeholder="Enter quiz description">{{ quiz.description|default:"" }}</textarea>
+                        </div>
+                        <div id="questionsContainer">
+                            {% for question_data in questions_data %}
+                                <div class="question-card card mb-3 border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Question {{ forloop.counter }}</label>
+                                            <input type="text" class="form-control" name="question_text" value="{{ question_data.text }}" placeholder="Enter question text" required>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Option A</label>
+                                                <input type="text" class="form-control" name="option_a_{{ forloop.counter0 }}" value="{{ question_data.answers.A|default:'' }}" placeholder="Enter option A" required>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Option B</label>
+                                                <input type="text" class="form-control" name="option_b_{{ forloop.counter0 }}" value="{{ question_data.answers.B|default:'' }}" placeholder="Enter option B" required>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Option C</label>
+                                                <input type="text" class="form-control" name="option_c_{{ forloop.counter0 }}" value="{{ question_data.answers.C|default:'' }}" placeholder="Enter option C" required>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Option D</label>
+                                                <input type="text" class="form-control" name="option_d_{{ forloop.counter0 }}" value="{{ question_data.answers.D|default:'' }}" placeholder="Enter option D" required>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Correct Answer</label><br>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="correct_answer_{{ forloop.counter0 }}" value="A" {% if question_data.correct == 'A' %}checked{% endif %} required>
+                                                <label class="form-check-label">A</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="correct_answer_{{ forloop.counter0 }}" value="B" {% if question_data.correct == 'B' %}checked{% endif %}>
+                                                <label class="form-check-label">B</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="correct_answer_{{ forloop.counter0 }}" value="C" {% if question_data.correct == 'C' %}checked{% endif %}>
+                                                <label class="form-check-label">C</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="correct_answer_{{ forloop.counter0 }}" value="D" {% if question_data.correct == 'D' %}checked{% endif %}>
+                                                <label class="form-check-label">D</label>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn btn-danger btn-sm removeQuestionBtn" {% if forloop.counter == 1 %}disabled{% endif %}>Remove Question</button>
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <div class="question-card card mb-3 border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Question 1</label>
+                                            <input type="text" class="form-control" name="question_text" placeholder="Enter question text" required>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Option A</label>
+                                                <input type="text" class="form-control" name="option_a_0" placeholder="Enter option A" required>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Option B</label>
+                                                <input type="text" class="form-control" name="option_b_0" placeholder="Enter option B" required>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Option C</label>
+                                                <input type="text" class="form-control" name="option_c_0" placeholder="Enter option C" required>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Option D</label>
+                                                <input type="text" class="form-control" name="option_d_0" placeholder="Enter option D" required>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Correct Answer</label><br>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="correct_answer_0" value="A" required>
+                                                <label class="form-check-label">A</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="correct_answer_0" value="B">
+                                                <label class="form-check-label">B</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="correct_answer_0" value="C">
+                                                <label class="form-check-label">C</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="correct_answer_0" value="D">
+                                                <label class="form-check-label">D</label>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn btn-danger btn-sm removeQuestionBtn" disabled>Remove Question</button>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <button type="button" class="btn btn-primary" id="addQuestionBtn">Add Question</button>
+                        <button type="submit" class="btn btn-success mt-3">Update Quiz</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let questionCount = {{ questions_data|length }};
+
+    const addQuestionBtn = document.getElementById('addQuestionBtn');
+    const questionsContainer = document.getElementById('questionsContainer');
+
+    addQuestionBtn.addEventListener('click', function() {
+        questionCount++;
+        const questionCard = createQuestionCard(questionCount);
+        questionsContainer.appendChild(questionCard);
+        updateRemoveButtons();
+    });
+
+    function createQuestionCard(index) {
+        const card = document.createElement('div');
+        card.className = 'question-card card mb-3 border-0 shadow-sm';
+        card.innerHTML = `
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Question ${index}</label>
+                    <input type="text" class="form-control" name="question_text" placeholder="Enter question text" required>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Option A</label>
+                        <input type="text" class="form-control" name="option_a_${index-1}" placeholder="Enter option A" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Option B</label>
+                        <input type="text" class="form-control" name="option_b_${index-1}" placeholder="Enter option B" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Option C</label>
+                        <input type="text" class="form-control" name="option_c_${index-1}" placeholder="Enter option C" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Option D</label>
+                        <input type="text" class="form-control" name="option_d_${index-1}" placeholder="Enter option D" required>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Correct Answer</label><br>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="correct_answer_${index-1}" value="A" required>
+                        <label class="form-check-label">A</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="correct_answer_${index-1}" value="B">
+                        <label class="form-check-label">B</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="correct_answer_${index-1}" value="C">
+                        <label class="form-check-label">C</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="correct_answer_${index-1}" value="D">
+                        <label class="form-check-label">D</label>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-danger btn-sm removeQuestionBtn">Remove Question</button>
+            </div>
+        `;
+        return card;
+    }
+
+    function updateRemoveButtons() {
+        const removeButtons = document.querySelectorAll('.removeQuestionBtn');
+        removeButtons.forEach(button => {
+            button.disabled = removeButtons.length === 1;
+        });
+    }
+
+    questionsContainer.addEventListener('click', function(e) {
+        if (e.target.classList.contains('removeQuestionBtn')) {
+            e.target.closest('.question-card').remove();
+            questionCount--;
+            updateRemoveButtons();
+            // Renumber questions
+            const questionCards = document.querySelectorAll('.question-card');
+            questionCards.forEach((card, index) => {
+                const label = card.querySelector('.form-label');
+                label.textContent = `Question ${index + 1}`;
+                const radios = card.querySelectorAll('input[type="radio"]');
+                radios.forEach(radio => {
+                    radio.name = `correct_answer_${index}`;
+                });
+            });
+        }
+    });
+
+    updateRemoveButtons();
+});
+</script>
+{% endblock %}

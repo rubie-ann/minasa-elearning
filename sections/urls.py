@@ -24,11 +24,15 @@ urlpatterns = [
     path('find-minasa/', views.find_minasa, name='find_minasa'),
     path('festival-calendar/', views.festival_calendar, name='festival_calendar'),
     path('growth-timeline/', views.growth_timeline, name='growth_timeline'),
-    path('activities/', lambda request: render(request, 'users/activities.html'), name='activities'),
+    path('activities/', views.activities_view, name='activities'),
     path('profile/', views.profile_view, name='profile'),
     path('about/', lambda request: render(request, 'users/about.html'), name='about'),
     path('admin-dashboard/', views.admin_dashboard, name='admin-dashboard'),
-    
+    path('quiz/<int:quiz_id>/view/', views.quiz_view, name='quiz-view'),
+    path('quiz/<int:quiz_id>/edit/', views.quiz_edit, name='quiz-edit'),
+    path('quiz/<int:quiz_id>/delete/', views.quiz_delete, name='quiz-delete'),
+    path('api/quiz/<int:quiz_id>/', views.quiz_api, name='quiz-api'),
+
 ]
 
 

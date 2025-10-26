@@ -1,0 +1,99 @@
+{% extends "users/base.html" %}
+{% load static %}
+
+{% block title %}Delete Quiz{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<style>
+    body {
+        background-color: #f4f6f9 !important;
+        margin: 0;
+        padding: 0;
+    }
+    
+    body .container {
+        background-color: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+    }
+
+    .logo-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .logo-container img {
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+    
+    .logo-container img:hover {
+        transform: scale(1.05);
+    }
+</style>
+<link rel="stylesheet" href="{% static 'css/adminside.css' %}">
+
+<div class="admin-sidebar">
+    <div class="sidebar-header">
+        <div class="logo-container">
+            <img src="/media/images/logo.png" alt="Minasa Festival Logo" style="max-width: 80px; height: auto;" />
+        </div>
+        <h2>Admin Panel</h2>
+    </div>
+    <ul class="admin-nav">
+        <li><a href="{% url 'adminpage-admin-dashboard' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+        <li><a href="{% url 'adminpage-user-management' %}"><i class="fas fa-users"></i> User Management</a></li>
+        <li><a href="{% url 'adminpage-content-manager' %}"><i class="fas fa-layer-group"></i> Content Manager</a></li>
+        <li><a href="{% url 'adminpage-activities' %}" class="active"><i class="fas fa-calendar"></i> Activities</a></li>
+        <li><a href="{% url 'adminpage-festival-calendar' %}"><i class="fas fa-star"></i> Events</a></li>
+    </ul>
+    <div class="admin-actions">
+        <div class="admin-user-info">
+            <p><strong>{{ user.username }}</strong></p>
+            <p>{{ user.email|default:"No email" }}</p>
+        </div>
+        <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </form>
+    </div>
+</div>
+
+<div class="admin-content">
+    <div class="admin-header">
+        <h1>Delete Quiz</h1>
+        <a href="{% url 'adminpage-activities' %}" class="btn btn-secondary">Back to Activities</a>
+    </div>
+    
+    <div class="admin-panels">
+        <section class="panel">
+            <h2>Confirm Deletion</h2>
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title text-danger">Are you sure you want to delete this quiz?</h5>
+                    <p class="card-text"><strong>Title:</strong> {{ quiz.title }}</p>
+                    <p class="card-text"><strong>Description:</strong> {{ quiz.description|default:"No description" }}</p>
+                    <p class="card-text"><strong>Questions:</strong> {{ quiz.questions.count }}</p>
+                    <p class="card-text"><strong>Created by:</strong> {{ quiz.created_by.username }}</p>
+                    <p class="card-text"><strong>Created at:</strong> {{ quiz.created_at|date:"M d, Y H:i" }}</p>
+                    
+                    <div class="alert alert-warning" role="alert">
+                        <strong>Warning!</strong> This action cannot be undone. All questions and answers associated with this quiz will be permanently deleted.
+                    </div>
+                    
+                    <form method="post" action="{% url 'quiz-delete' quiz.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Yes, Delete Quiz</button>
+                        <a href="{% url 'adminpage-activities' %}" class="btn btn-secondary">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}
