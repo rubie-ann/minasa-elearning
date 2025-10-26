@@ -27,6 +27,8 @@ urlpatterns = [
     path('activities/', lambda request: render(request, 'users/activities.html'), name='activities'),
     path('profile/', views.profile_view, name='profile'),
     path('about/', lambda request: render(request, 'users/about.html'), name='about'),
+    path('admin-dashboard/', views.admin_dashboard, name='admin-dashboard'),
+    
 ]
 
 

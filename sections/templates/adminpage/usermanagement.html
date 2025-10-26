@@ -1,0 +1,315 @@
+{% extends "users/base.html" %}
+{% load static %}
+
+{% block title %}User Management{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<style>
+    /* Override body and container for admin dashboard */
+    body {
+        background-color: #f4f6f9 !important;
+        margin: 0;
+        padding: 0;
+    }
+    
+    body .container {
+        background-color: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+    }
+
+    /* Styles to mimic the "Blocked" toggle in the example image */
+    .status-cell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .status-tag {
+        background-color: #fce4e4; /* Light red/pink background for 'Blocked' */
+        color: #dc3545; /* Red text */
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-weight: bold;
+        font-size: 0.85em;
+    }
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 40px;
+        height: 24px;
+    }
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        -webkit-transition: .4s;
+        transition: .4s;
+        border-radius: 24px;
+    }
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 16px;
+        width: 16px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        -webkit-transition: .4s;
+        transition: .4s;
+        border-radius: 50%;
+    }
+    input:checked + .slider {
+        background-color: #2196F3;
+    }
+    input:checked + .slider:before {
+        -webkit-transform: translateX(16px);
+        -ms-transform: translateX(16px);
+        transform: translateX(16px);
+    }
+    
+    /* Logo container styling */
+    .logo-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .logo-container img {
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+    
+    .logo-container img:hover {
+        transform: scale(1.05);
+    }
+</style>
+<link rel="stylesheet" href="{% static 'css/adminside.css' %}">
+
+<div class="admin-sidebar">
+    <div class="sidebar-header">
+        <div class="logo-container">
+            <img src="/media/images/logo.png" alt="Minasa Festival Logo" style="max-width: 80px; height: auto;" />
+        </div>
+        <h2>Admin Panel</h2>
+    </div>
+    <ul class="admin-nav">
+        <li><a href="{% url 'adminpage-admin-dashboard' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+        <li><a href="#" class="active"><i class="fas fa-users"></i> User Management</a></li>
+        <li><a href="{% url 'adminpage-content-manager' %}"><i class="fas fa-layer-group"></i> Content Manager</a></li>
+        <li><a href="{% url 'adminpage-minasa-products' %}"><i class="fas fa-shopping-bag"></i> Minasa Products</a></li>
+        <li><a href="{% url 'adminpage-activities' %}"><i class="fas fa-calendar"></i> Activities</a></li>
+        <li><a href="{% url 'adminpage-festival-calendar' %}"><i class="fas fa-star"></i> Events</a></li>
+    </ul>
+    <div class="admin-actions">
+        <div class="admin-user-info">
+            <p><strong>{{ user.username }}</strong></p>
+            <p>{{ user.email|default:"No email" }}</p>
+        </div>
+        <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </form>
+    </div>
+</div>
+
+<div class="admin-content">
+    <div class="admin-header">
+        <h1>User Management</h1>
+        <div class="admin-stats">
+            <div class="stat-card">
+                <div>
+                    <h3>{{ total_users }}</h3>
+                    <p>Total Users</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div>
+                    <h3>{{ active_users }}</h3>
+                    <p>Active Users</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div>
+                    <h3>{{ blocked_users }}</h3>
+                    <p>Blocked Users</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div>
+                    <h3>{{ new_users_today }}</h3>
+                    <p>New Today</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="admin-panels">
+        <section class="panel">
+            <h2>All Users</h2>
+            <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                <input type="text" id="searchUsers" placeholder="Search users..." style="padding: 10px; width: 300px; border: 1px solid #ddd; border-radius: 5px;">
+                
+                <div style="margin-left: auto; display: flex; gap: 10px;">
+                    <button style="background-color: #dc3545; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;"><i class="fas fa-trash"></i> Delete</button>
+                    <button style="background-color: #ffc107; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;"><i class="fas fa-file-alt"></i> Generate Report</button>
+                </div>
+
+            </div>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th style="width: 30px;">ID</th>
+                        <th>Username</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <!-- <th>Failed Attempts</th> -->
+                        <th>Actions</th>
+                        <!-- <th style="width: 30px;"></th>  -->
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in all_users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.first_name|default:"-" }}</td>
+                        <td>{{ user.last_name|default:"-" }}</td>
+                        <td>{{ user.email|default:"No email" }}</td>
+                        <td class="status-cell">
+                            {% if user.profile.is_blocked %}
+                                <span class="status-tag">Blocked</span>
+                            {% else %}
+                                <span class="status-tag" style="background-color: #e6f7e7; color: #28a745;">Active</span>
+                            {% endif %}
+                            
+                            <label class="toggle-switch">
+                                <input type="checkbox" {% if not user.profile.is_blocked %}checked{% endif %} onclick="toggleUserStatus({{ user.id }}, this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </td>
+                        <!-- <td>
+                            <span style="color: {% if user.profile.failed_login_attempts >= 2 %}#dc3545{% else %}#6c757d{% endif %}; font-weight: bold;">
+                                {{ user.profile.failed_login_attempts }}/3
+                            </span>
+                        </td> -->
+                        
+                        <td>
+                            <input type="checkbox" name="selected_user" value="{{ user.id }}">
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        
+        <section class="panel" style="display: none;">
+            <h2>User Roles & Permissions</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #f5b031;">
+                    <h4 style="margin: 0 0 10px 0; color: #f5b031;">Superusers</h4>
+                    <p style="margin: 0; font-size: 24px; font-weight: bold;">{{ superuser_count }}</p>
+                </div>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #17a2b8;">
+                    <h4 style="margin: 0 0 10px 0; color: #17a2b8;">Staff Members</h4>
+                    <p style="margin: 0; font-size: 24px; font-weight: bold;">{{ staff_count }}</p>
+                </div>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745;">
+                    <h4 style="margin: 0 0 10px 0; color: #28a745;">Regular Users</h4>
+                    <p style="margin: 0; font-size: 24px; font-weight: bold;">{{ regular_user_count }}</p>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<script>
+// Search functionality (Updated cell indices for new columns)
+document.getElementById('searchUsers').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll('.admin-table tbody tr');
+    
+    rows.forEach(row => {
+        // Cell indices: 0-ID, 1-Username, 2-First Name, 3-Last Name, 4-Email, 5-Status, 6-Failed Attempts, 7-Actions, 8-Checkbox
+        const id = row.cells[0].textContent.toLowerCase();
+        const username = row.cells[1].textContent.toLowerCase();
+        const firstName = row.cells[2].textContent.toLowerCase();
+        const lastName = row.cells[3].textContent.toLowerCase();
+        const email = row.cells[4].textContent.toLowerCase();
+        
+        if (id.includes(searchTerm) || username.includes(searchTerm) || firstName.includes(searchTerm) || 
+            lastName.includes(searchTerm) || email.includes(searchTerm)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+});
+
+// User management functions 
+function toggleUserStatus(userId, isChecked) {
+    const action = isChecked ? 'unblock' : 'block';
+    if (confirm(`Are you sure you want to ${action} this user?`)) {
+        performUserAction(userId, action);
+    }
+}
+
+function blockUser(userId) {
+    if (confirm('Are you sure you want to block this user?')) {
+        performUserAction(userId, 'block');
+    }
+}
+
+function unblockUser(userId) {
+    if (confirm('Are you sure you want to unblock this user?')) {
+        performUserAction(userId, 'unblock');
+    }
+}
+
+function performUserAction(userId, action) {
+    // Create a form to submit the action
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{% url "adminpage-user-management" %}';
+    
+    // Add CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+    
+    // Add action and user_id
+    const actionInput = document.createElement('input');
+    actionInput.type = 'hidden';
+    actionInput.name = 'action';
+    actionInput.value = action;
+    form.appendChild(actionInput);
+    
+    const userIdInput = document.createElement('input');
+    userIdInput.type = 'hidden';
+    userIdInput.name = 'user_id';
+    userIdInput.value = userId;
+    form.appendChild(userIdInput);
+    
+    // Submit the form
+    document.body.appendChild(form);
+    form.submit();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,418 @@
+{% extends "users/base.html" %}
+{% load static %}
+
+{% block title %}Category Manager{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<style>
+    /* Override body and container for admin dashboard */
+    body {
+        background-color: #f4f6f9 !important;
+        margin: 0;
+        padding: 0;
+    }
+    
+    body .container {
+        background-color: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+    }
+
+    /* Logo container styling */
+    .logo-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .logo-container img {
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+    
+    .logo-container img:hover {
+        transform: scale(1.05);
+    }
+
+    /* Modal styling */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 5% auto;
+        padding: 20px;
+        border: none;
+        border-radius: 10px;
+        width: 80%;
+        max-width: 600px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .close:hover {
+        color: #000;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+    }
+
+    .form-group textarea {
+        height: 100px;
+        resize: vertical;
+    }
+
+    .btn-group {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 20px;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .btn-warning {
+        background-color: #ffc107;
+        color: black;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .btn:hover {
+        opacity: 0.9;
+    }
+
+    /* Category Card Grid */
+    .category-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .category-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        transition: all 0.3s ease;
+        border: 2px solid #e1e5e9;
+        position: relative;
+    }
+
+    .category-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .category-card-header {
+        padding: 15px 20px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-bottom: 2px solid #dee2e6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .category-card-body {
+        padding: 20px;
+    }
+
+    .category-name {
+        font-size: 18px;
+        font-weight: bold;
+        color: #2c3e50;
+        margin: 0 0 10px 0;
+    }
+
+    .category-description {
+        color: #6c757d;
+        font-size: 14px;
+        line-height: 1.5;
+        margin: 0 0 15px 0;
+        min-height: 40px;
+    }
+
+    .category-color-badge {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+        text-transform: uppercase;
+        margin-top: 10px;
+    }
+
+    .category-card-actions {
+        padding: 15px 20px;
+        background: #f8f9fa;
+        border-top: 1px solid #dee2e6;
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+
+    .btn-sm {
+        padding: 6px 12px;
+        font-size: 12px;
+        border-radius: 4px;
+    }
+</style>
+<link rel="stylesheet" href="{% static 'css/adminside.css' %}">
+
+<div class="admin-sidebar">
+    <div class="sidebar-header">
+        <div class="logo-container">
+            <img src="/media/images/logo.png" alt="Minasa Festival Logo" style="max-width: 80px; height: auto;" />
+        </div>
+        <h2>Admin Panel</h2>
+    </div>
+    <ul class="admin-nav">
+        <li><a href="{% url 'adminpage-admin-dashboard' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+        <li><a href="{% url 'adminpage-user-management' %}"><i class="fas fa-users"></i> User Management</a></li>
+        <li><a href="{% url 'adminpage-content-manager' %}"><i class="fas fa-layer-group"></i> Content Manager</a></li>
+        <li><a href="{% url 'adminpage-minasa-products' %}"><i class="fas fa-shopping-bag"></i> Minasa Products</a></li>
+        <li><a href="{% url 'adminpage-activities' %}"><i class="fas fa-calendar"></i> Activities</a></li>
+        <li><a href="{% url 'adminpage-festival-calendar' %}"><i class="fas fa-star"></i> Events</a></li>
+    </ul>
+    <div class="admin-actions">
+        <div class="admin-user-info">
+            <p><strong>{{ user.username }}</strong></p>
+            <p>{{ user.email|default:"No email" }}</p>
+        </div>
+        <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </form>
+    </div>
+</div>
+
+<div class="admin-content">
+    <div class="admin-header">
+        <h1>Category Manager</h1>
+        
+    </div>
+    
+    <div class="admin-panels">
+        <section class="panel">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <a href="{% url 'adminpage-content-manager' %}" class="btn btn-success">
+                    <i class="fas fa-layer-group"></i> Back toContent Manager
+                </a>
+                
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <input type="text" id="searchCategories" placeholder="Search categories..." style="padding: 10px; width: 300px; border: 1px solid #ddd; border-radius: 5px;">
+                <button class="btn btn-success" onclick="openAddModal()">
+                    <i class="fas fa-plus"></i> Add New Category
+                </button>
+            </div>
+            
+            
+            <div class="category-grid">
+                {% for category in categories %}
+                <div class="category-card" data-category-id="{{ category.id }}">
+                    <div class="category-card-header">
+                        <span style="color: #6c757d; font-size: 14px; font-weight: bold;">#{{ category.id }}</span>
+                    </div>
+                    
+                    <div class="category-card-body">
+                        <h3 class="category-name">{{ category.name }}</h3>
+                        <p class="category-description">{{ category.description|default:"No description" }}</p>
+                        
+                        <div style="margin-top: 15px; font-size: 12px; color: #999;">
+                            <i class="fas fa-calendar"></i> Created: {{ category.created_at|date:"M d, Y" }}
+                        </div>
+                    </div>
+                    
+                    <div class="category-card-actions">
+                        <button class="btn btn-warning btn-sm" onclick="editCategory({{ category.id }})">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteCategory({{ category.id }})">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+</div>
+
+<!-- Add/Edit Category Modal -->
+<div id="categoryModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2 id="modalTitle">Add New Category</h2>
+        
+        <form id="categoryForm" method="post">
+            {% csrf_token %}
+            <input type="hidden" id="categoryId" name="category_id">
+            <input type="hidden" id="actionType" name="action" value="add">
+            
+            <div class="form-group">
+                <label for="categoryName">Category Name:</label>
+                <input type="text" id="categoryName" name="category_name" required placeholder="Enter category name">
+            </div>
+            
+            <div class="form-group">
+                <label for="categoryDescription">Description (Optional):</label>
+                <textarea id="categoryDescription" name="category_description" placeholder="Enter category description"></textarea>
+            </div>
+            
+            <div class="btn-group">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn btn-success" id="submitBtn">Add Category</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Search functionality
+document.getElementById('searchCategories').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const cards = document.querySelectorAll('.category-card');
+    
+    cards.forEach(card => {
+        const name = card.querySelector('.category-name').textContent.toLowerCase();
+        const description = card.querySelector('.category-description').textContent.toLowerCase();
+        
+        if (name.includes(searchTerm) || description.includes(searchTerm)) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+});
+
+// Modal functions
+function openAddModal() {
+    document.getElementById('modalTitle').textContent = 'Add New Category';
+    document.getElementById('actionType').value = 'add';
+    document.getElementById('categoryId').value = '';
+    document.getElementById('submitBtn').textContent = 'Add Category';
+    document.getElementById('categoryForm').reset();
+    document.getElementById('categoryModal').style.display = 'block';
+}
+
+function editCategory(categoryId) {
+    document.getElementById('modalTitle').textContent = 'Edit Category';
+    document.getElementById('actionType').value = 'edit';
+    document.getElementById('categoryId').value = categoryId;
+    document.getElementById('submitBtn').textContent = 'Update Category';
+    document.getElementById('categoryModal').style.display = 'block';
+    
+    // In a real implementation, you would fetch and populate the form with existing data
+}
+
+function closeModal() {
+    document.getElementById('categoryModal').style.display = 'none';
+}
+
+function deleteCategory(categoryId) {
+    if (confirm('Are you sure you want to delete this category?')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{% url "adminpage-category-manager" %}';
+        
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        
+        const actionInput = document.createElement('input');
+        actionInput.type = 'hidden';
+        actionInput.name = 'action';
+        actionInput.value = 'delete';
+        form.appendChild(actionInput);
+        
+        const idInput = document.createElement('input');
+        idInput.type = 'hidden';
+        idInput.name = 'category_id';
+        idInput.value = categoryId;
+        form.appendChild(idInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('categoryModal');
+    if (event.target === modal) {
+        closeModal();
+    }
+}
+</script>
+{% endblock %}
+

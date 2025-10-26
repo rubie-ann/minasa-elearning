@@ -24,8 +24,17 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('users/', include('sections.urls')),
     path('', views.login_view, name='login'),  # default page is login
-    path('accounts/', include('django.contrib.auth.urls')),
+    path('adminpage/admin-dashboard/', views.admin_dashboard, name='adminpage-admin-dashboard'),
+    path('adminpage/user-management/', views.user_management, name='adminpage-user-management'),
+    path('adminpage/content-manager/', views.content_manager, name='adminpage-content-manager'),
+    path('adminpage/category-manager/', views.category_manager, name='adminpage-category-manager'),
+    path('adminpage/activities/', views.adminpage_activities, name='adminpage-activities'),
+    path('adminpage/festival-calendar/', views.adminpage_festival_calendar, name='adminpage-festival-calendar'),
+    path('adminpage/minasa-products/', views.adminpage_minasa_products, name='adminpage-minasa-products'),
+    path('adminpage/user-action/', views.user_management, name='adminpage-user-action'),  # For POST requests
+    path('accounts/profile/', views.profile_view, name='accounts_profile'),
     path('accounts/signup/', views.signup, name='signup'),
+    path('accounts/', include('django.contrib.auth.urls')),
 ]
 
 if settings.DEBUG:

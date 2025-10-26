@@ -127,6 +127,9 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'minasaelearning' / 'media'
 
+# Auth settings
+LOGIN_REDIRECT_URL = '/users/home/'  # Redirect to home after login
+LOGOUT_REDIRECT_URL = '/login/'  # Redirect to login after logout
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

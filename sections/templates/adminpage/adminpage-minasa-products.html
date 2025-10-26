@@ -1,0 +1,80 @@
+{% extends "users/base.html" %}
+{% load static %}
+
+{% block title %}Minasa Products Manager{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<style>
+    body {
+        background-color: #f4f6f9 !important;
+        margin: 0;
+        padding: 0;
+    }
+    
+    body .container {
+        background-color: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+    }
+
+    .logo-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .logo-container img {
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+    
+    .logo-container img:hover {
+        transform: scale(1.05);
+    }
+</style>
+<link rel="stylesheet" href="{% static 'css/adminside.css' %}">
+
+<div class="admin-sidebar">
+    <div class="sidebar-header">
+        <div class="logo-container">
+            <img src="/media/images/logo.png" alt="Minasa Festival Logo" style="max-width: 80px; height: auto;" />
+        </div>
+        <h2>Admin Panel</h2>
+    </div>
+    <ul class="admin-nav">
+        <li><a href="{% url 'adminpage-admin-dashboard' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+        <li><a href="{% url 'adminpage-user-management' %}"><i class="fas fa-users"></i> User Management</a></li>
+        <li><a href="#" class="active"><i class="fas fa-layer-group"></i> Content Manager</a></li>
+        <li><a href="{% url 'adminpage-activities' %}"><i class="fas fa-calendar"></i> Activities</a></li>
+        <li><a href="{% url 'adminpage-festival-calendar' %}"><i class="fas fa-star"></i> Events</a></li>
+    </ul>
+    <div class="admin-actions">
+        <div class="admin-user-info">
+            <p><strong>{{ user.username }}</strong></p>
+            <p>{{ user.email|default:"No email" }}</p>
+        </div>
+        <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </form>
+    </div>
+</div>
+
+<div class="admin-content">
+    <div class="admin-header">
+        <h1>Minasa Products Manager</h1>
+    </div>
+    
+    <div class="admin-panels">
+        <section class="panel">
+            <h2>Minasa Products</h2>
+            <p>Minasa products management will be implemented here.</p>
+        </section>
+    </div>
+</div>
+{% endblock %}
+

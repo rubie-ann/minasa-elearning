@@ -28,6 +28,11 @@ class Section(models.Model):
     
     
 class Profile(models.Model):
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('blocked', 'Blocked'),
+    ]
+    
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     image = models.ImageField(
         upload_to='images/',
@@ -35,9 +40,62 @@ class Profile(models.Model):
         null=True,
         default='images/user.png'
     )
+    status = models.CharField(
+        max_length=10, 
+        choices=STATUS_CHOICES, 
+        default='active',
+        help_text="User account status"
+    )
+    failed_login_attempts = models.IntegerField(
+        default=0,
+        help_text="Number of consecutive failed login attempts"
+    )
+    last_failed_login = models.DateTimeField(
+        blank=True, 
+        null=True,
+        help_text="Timestamp of last failed login attempt"
+    )
+    blocked_until = models.DateTimeField(
+        blank=True, 
+        null=True,
+        help_text="Account blocked until this timestamp"
+    )
 
     def __str__(self):
         return self.user.username
+    
+    def is_blocked(self):
+        """Check if user is currently blocked"""
+        from django.utils import timezone
+        if self.status == 'blocked':
+            return True
+        if self.blocked_until and self.blocked_until > timezone.now():
+            return True
+        return False
+    
+    def reset_failed_attempts(self):
+        """Reset failed login attempts counter"""
+        self.failed_login_attempts = 0
+        self.last_failed_login = None
+        self.blocked_until = None
+        self.status = 'active'
+        self.save()
+    
+    def increment_failed_attempts(self):
+        """Increment failed login attempts and block if threshold reached"""
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        self.failed_login_attempts += 1
+        self.last_failed_login = timezone.now()
+        
+        # Block user after 3 failed attempts
+        if self.failed_login_attempts >= 3:
+            self.status = 'blocked'
+            # Block for 30 minutes
+            self.blocked_until = timezone.now() + timedelta(minutes=30)
+        
+        self.save()
 
 
 @receiver(post_save, sender=User)
@@ -69,3 +127,19 @@ class FestivalEvent(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.event_type})"
+
+    
+class Category(models.Model):
+    """Model for managing content categories"""
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "Category"
+        verbose_name_plural = "Categories"
+        ordering = ['name']
+    
+    def __str__(self):
+        return self.name
