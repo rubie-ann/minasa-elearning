@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm
-from .models import Section, Category
+from .models import Section, Category, Quiz, Question, Answer
 from collections import defaultdict
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import AuthenticationForm
@@ -496,7 +496,68 @@ def content_manager(request):
 @login_required
 def adminpage_activities(request):
     if request.user.username == 'admin' or request.user.is_superuser:
-        return render(request, 'adminpage/adminpage-activities.html')
+        if request.method == 'POST':
+            print("POST data received")
+            print("POST keys:", list(request.POST.keys()))
+            # Handle quiz creation
+            quiz_title = request.POST.get('quiz_title')
+            quiz_description = request.POST.get('quiz_description')
+            print("quiz_title:", repr(quiz_title))
+
+            if quiz_title:
+                # Create the quiz
+                quiz = Quiz.objects.create(
+                    title=quiz_title,
+                    description=quiz_description,
+                    created_by=request.user
+                )
+
+                # Process questions
+                question_texts = request.POST.getlist('question_text')
+                correct_answers = []
+                for i in range(len(question_texts)):
+                    correct_answers.append(request.POST.get(f'correct_answer_{i}'))
+
+                for i, question_text in enumerate(question_texts):
+                    if question_text.strip():  # Only create if question text is not empty
+                        question = Question.objects.create(
+                            quiz=quiz,
+                            text=question_text,
+                            order=i + 1
+                        )
+
+                        # Get answer options for this question
+                        option_a = request.POST.get(f'option_a_{i}')
+                        option_b = request.POST.get(f'option_b_{i}')
+                        option_c = request.POST.get(f'option_c_{i}')
+                        option_d = request.POST.get(f'option_d_{i}')
+
+                        # Create answers
+                        answers_data = [
+                            (option_a, 'A'),
+                            (option_b, 'B'),
+                            (option_c, 'C'),
+                            (option_d, 'D')
+                        ]
+
+                        for answer_text, option in answers_data:
+                            if answer_text and answer_text.strip():
+                                is_correct = (correct_answers[i] == option) if correct_answers[i] else False
+                                Answer.objects.create(
+                                    question=question,
+                                    text=answer_text,
+                                    is_correct=is_correct
+                                )
+
+                messages.success(request, f'Quiz "{quiz_title}" has been created successfully!')
+                return redirect('adminpage-activities')
+
+        # Get all quizzes for display
+        quizzes = Quiz.objects.all().order_by('-created_at')
+        context = {
+            'quizzes': quizzes,
+        }
+        return render(request, 'adminpage/adminpage-activities.html', context)
     return redirect('home')
 
 @login_required

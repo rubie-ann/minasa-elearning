@@ -135,11 +135,51 @@ class Category(models.Model):
     description = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         verbose_name = "Category"
         verbose_name_plural = "Categories"
         ordering = ['name']
-    
+
     def __str__(self):
         return self.name
+
+
+class Quiz(models.Model):
+    """Model for quizzes"""
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True, null=True)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Quiz"
+        verbose_name_plural = "Quizzes"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title
+
+
+class Question(models.Model):
+    """Model for quiz questions"""
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='questions')
+    text = models.TextField()
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f"Question {self.order}: {self.text[:50]}"
+
+
+class Answer(models.Model):
+    """Model for question answers"""
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='answers')
+    text = models.CharField(max_length=500)
+    is_correct = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.text

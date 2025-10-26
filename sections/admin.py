@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import Section, Profile
 from django.utils.html import format_html
-from .models import FestivalEvent, Category
+from .models import FestivalEvent, Category, Quiz, Question, Answer
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 
@@ -54,6 +54,25 @@ class UserAdmin(BaseUserAdmin):
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         return qs
+
+@admin.register(Quiz)
+class QuizAdmin(admin.ModelAdmin):
+    list_display = ("title", "description", "created_by", "created_at")
+    search_fields = ("title", "description")
+    list_filter = ("created_by", "created_at")
+    readonly_fields = ("created_at", "updated_at")
+
+@admin.register(Question)
+class QuestionAdmin(admin.ModelAdmin):
+    list_display = ("quiz", "text", "order")
+    search_fields = ("text",)
+    list_filter = ("quiz",)
+
+@admin.register(Answer)
+class AnswerAdmin(admin.ModelAdmin):
+    list_display = ("question", "text", "is_correct")
+    search_fields = ("text",)
+    list_filter = ("question__quiz", "is_correct")
 
 # Unregister the default User admin and register our custom one
 admin.site.unregister(User)

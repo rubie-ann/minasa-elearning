@@ -66,15 +66,218 @@
 
 <div class="admin-content">
     <div class="admin-header">
-        <h1>Activities Manager</h1>
+        <h1>Minasa Festival Quiz Manager</h1>
     </div>
     
     <div class="admin-panels">
         <section class="panel">
-            <h2>Activities</h2>
-            <p>Activities management will be implemented here.</p>
+            <h2>Create Quiz</h2>
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form id="quizForm" method="post" action="{% url 'adminpage-activities' %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="quizTitle" class="form-label">Quiz Title</label>
+                            <input type="text" class="form-control" id="quizTitle" name="quiz_title" placeholder="Enter quiz title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="quizDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="quizDescription" name="quiz_description" rows="3" placeholder="Enter quiz description"></textarea>
+                        </div>
+                        <div id="questionsContainer">
+                            <!-- Initial question -->
+                            <div class="question-card card mb-3 border-0 shadow-sm">
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Question 1</label>
+                                        <input type="text" class="form-control" name="question_text" placeholder="Enter question text" required>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="option_a_0" class="form-label">Option A</label>
+                                            <input type="text" class="form-control" id="option_a_0" name="option_a_0" placeholder="Enter option A" title="Enter option A" aria-label="Option A" required>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="option_b_0" class="form-label">Option B</label>
+                                            <input type="text" class="form-control" id="option_b_0" name="option_b_0" placeholder="Enter option B" title="Enter option B" aria-label="Option B" required>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="option_c_0" class="form-label">Option C</label>
+                                            <input type="text" class="form-control" id="option_c_0" name="option_c_0" placeholder="Enter option C" title="Enter option C" aria-label="Option C" required>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="option_d_0" class="form-label">Option D</label>
+                                            <input type="text" class="form-control" id="option_d_0" name="option_d_0" placeholder="Enter option D" title="Enter option D" aria-label="Option D" required>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Correct Answer</label><br>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="correct_answer_0" value="A" required>
+                                            <label class="form-check-label">A</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="correct_answer_0" value="B">
+                                            <label class="form-check-label">B</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="correct_answer_0" value="C">
+                                            <label class="form-check-label">C</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="correct_answer_0" value="D">
+                                            <label class="form-check-label">D</label>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-danger btn-sm removeQuestionBtn" disabled>Remove Question</button>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-primary" id="addQuestionBtn">Add Question</button>
+                        <button type="submit" class="btn btn-success mt-3">Save Quiz</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Existing Quizzes Section -->
+        <section class="panel">
+            <h2>Existing Quizzes</h2>
+            {% if quizzes %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Description</th>
+                                <th>Questions</th>
+                                <th>Created By</th>
+                                <th>Created At</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for quiz in quizzes %}
+                                <tr>
+                                    <td>{{ quiz.title }}</td>
+                                    <td>{{ quiz.description|truncatechars:50 }}</td>
+                                    <td>{{ quiz.questions.count }}</td>
+                                    <td>{{ quiz.created_by.username }}</td>
+                                    <td>{{ quiz.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info">View</button>
+                                        <button class="btn btn-sm btn-warning">Edit</button>
+                                        <button class="btn btn-sm btn-danger">Delete</button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">No quizzes created yet.</p>
+            {% endif %}
         </section>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let questionCount = 1;
+
+    const addQuestionBtn = document.getElementById('addQuestionBtn');
+    const questionsContainer = document.getElementById('questionsContainer');
+    const quizForm = document.getElementById('quizForm');
+
+    addQuestionBtn.addEventListener('click', function() {
+        questionCount++;
+        const questionCard = createQuestionCard(questionCount);
+        questionsContainer.appendChild(questionCard);
+        updateRemoveButtons();
+    });
+
+    function createQuestionCard(index) {
+        const card = document.createElement('div');
+        card.className = 'question-card card mb-3 border-0 shadow-sm';
+        card.innerHTML = `
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Question ${index}</label>
+                    <input type="text" class="form-control" name="question_text" placeholder="Enter question text" required>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Option A</label>
+                        <input type="text" class="form-control" name="option_a_${index-1}" placeholder="Enter option A" title="Enter option A" aria-label="Option A" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Option B</label>
+                        <input type="text" class="form-control" name="option_b_${index-1}" placeholder="Enter option B" title="Enter option B" aria-label="Option B" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Option C</label>
+                        <input type="text" class="form-control" name="option_c_${index-1}" placeholder="Enter option C" title="Enter option C" aria-label="Option C" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Option D</label>
+                        <input type="text" class="form-control" name="option_d_${index-1}" placeholder="Enter option D" title="Enter option D" aria-label="Option D" required>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Correct Answer</label><br>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="correct_answer_${index-1}" value="A" required>
+                        <label class="form-check-label">A</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="correct_answer_${index-1}" value="B">
+                        <label class="form-check-label">B</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="correct_answer_${index-1}" value="C">
+                        <label class="form-check-label">C</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="correct_answer_${index-1}" value="D">
+                        <label class="form-check-label">D</label>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-danger btn-sm removeQuestionBtn">Remove Question</button>
+            </div>
+        `;
+        return card;
+    }
+
+    function updateRemoveButtons() {
+        const removeButtons = document.querySelectorAll('.removeQuestionBtn');
+        removeButtons.forEach(button => {
+            button.disabled = removeButtons.length === 1;
+        });
+    }
+
+    questionsContainer.addEventListener('click', function(e) {
+        if (e.target.classList.contains('removeQuestionBtn')) {
+            e.target.closest('.question-card').remove();
+            questionCount--;
+            updateRemoveButtons();
+            // Renumber questions
+            const questionCards = document.querySelectorAll('.question-card');
+            questionCards.forEach((card, index) => {
+                const label = card.querySelector('.form-label');
+                label.textContent = `Question ${index + 1}`;
+                const radios = card.querySelectorAll('input[type="radio"]');
+                radios.forEach(radio => {
+                    radio.name = `correct_answer_${index}`;
+                });
+            });
+        }
+    });
+
+});
+</script>
 {% endblock %}
 
