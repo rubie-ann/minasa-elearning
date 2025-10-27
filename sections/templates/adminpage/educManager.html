@@ -502,7 +502,16 @@
             
             <div class="card-grid">
                 {% for section in sections %}
-                <div class="section-card" data-section-id="{{ section.id }}" data-category="{{ section.category|lower }}">
+                <!-- <div class="section-card" data-section-id="{{ section.id }}" data-category="{{ section.category|lower }}"> -->
+                <div class="section-card" 
+                    data-section-id="{{ section.id }}"
+                    data-section-title="{{ section.title|escapejs }}"
+                    data-section-category="{{ section.category }}"
+                    data-section-description="{{ section.description|escapejs }}"
+                    data-section-image="{% if section.image %}{{ section.image.url }}{% endif %}"
+                    data-section-attachment="{% if section.attachment %}{{ section.attachment.url }}{% endif %}"
+                    data-section-link="{{ section.link|default:'' }}">
+
                     <div class="card-header">
                         <div class="card-checkbox">
                             <input type="checkbox" name="selected_section" value="{{ section.id }}">
@@ -667,16 +676,49 @@ function openAddModal() {
 }
 
 function editSection(sectionId) {
-    // This would typically fetch section data via AJAX
-    // For now, we'll show the modal with edit mode
+    const card = document.querySelector(`.section-card[data-section-id="${sectionId}"]`);
+    if (!card) return;
+
+    // Switch modal to edit mode
     document.getElementById('modalTitle').textContent = 'Edit Educational Section';
     document.getElementById('actionType').value = 'edit';
     document.getElementById('sectionId').value = sectionId;
     document.getElementById('submitBtn').textContent = 'Update Section';
+
+    // Fill in data from card attributes
+    document.getElementById('title').value = card.getAttribute('data-section-title') || '';
+    document.getElementById('category').value = card.getAttribute('data-section-category') || '';
+    document.getElementById('description').value = card.getAttribute('data-section-description') || '';
+    document.getElementById('link').value = card.getAttribute('data-section-link') || '';
+
+    // Optional: If you want to show a preview of current image and attachment
+    const imageUrl = card.getAttribute('data-section-image');
+    const attachmentUrl = card.getAttribute('data-section-attachment');
+
+    // Add or update image preview
+    let imagePreview = document.getElementById('imagePreview');
+    if (!imagePreview) {
+        imagePreview = document.createElement('div');
+        imagePreview.id = 'imagePreview';
+        imagePreview.style.marginTop = '10px';
+        document.getElementById('image').insertAdjacentElement('afterend', imagePreview);
+    }
+    imagePreview.innerHTML = imageUrl ? `<img src="${imageUrl}" alt="Current Image" style="max-width:100%;border-radius:8px;">` : '';
+
+    // Add or update attachment preview
+    let attachmentPreview = document.getElementById('attachmentPreview');
+    if (!attachmentPreview) {
+        attachmentPreview = document.createElement('div');
+        attachmentPreview.id = 'attachmentPreview';
+        attachmentPreview.style.marginTop = '10px';
+        document.getElementById('attachment').insertAdjacentElement('afterend', attachmentPreview);
+    }
+    attachmentPreview.innerHTML = attachmentUrl ? `<a href="${attachmentUrl}" target="_blank" style="color:#007bff;font-size:14px;">View Current Attachment</a>` : '';
+
+    // Show modal
     document.getElementById('sectionModal').style.display = 'block';
-    
-    // In a real implementation, you would populate the form fields with existing data
 }
+
 
 function closeModal() {
     document.getElementById('sectionModal').style.display = 'none';

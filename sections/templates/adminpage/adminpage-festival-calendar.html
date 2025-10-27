@@ -411,7 +411,17 @@
             
             <div class="card-grid" id="eventsGrid">
                 {% for event in events %}
-                <div class="event-card" data-event-id="{{ event.id }}" data-event-type="{{ event.event_type }}">
+                <!-- <div class="event-card" data-event-id="{{ event.id }}" data-event-type="{{ event.event_type }}"> -->
+                <div class="event-card" 
+                    data-event-id="{{ event.id }}"
+                    data-event-name="{{ event.name }}"
+                    data-event-type="{{ event.event_type }}"
+                    data-event-description="{{ event.description|default:'' }}"
+                    data-event-date="{{ event.date|date:'Y-m-d' }}"
+                    data-event-time="{{ event.time|time:'H:i' }}"
+                    data-event-location="{{ event.location|default:'' }}"
+                    data-event-map="{{ event.map_link|default:'' }}">
+
                     <div class="card-header">
                         <div class="card-checkbox">
                             <input type="checkbox" name="selected_events" value="{{ event.id }}">
@@ -575,13 +585,27 @@ function openAddModal() {
 }
 
 function editEvent(eventId) {
-    // This would typically fetch event data via AJAX
+    const card = document.querySelector(`.event-card[data-event-id="${eventId}"]`);
+    if (!card) return;
+
+    // Fill modal fields
     document.getElementById('eventModalTitle').textContent = 'Edit Event';
     document.getElementById('actionType').value = 'edit';
     document.getElementById('eventId').value = eventId;
     document.getElementById('eventSubmitBtn').textContent = 'Update Event';
+    
+    document.getElementById('eventName').value = card.getAttribute('data-event-name');
+    document.getElementById('eventType').value = card.getAttribute('data-event-type');
+    document.getElementById('eventDescription').value = card.getAttribute('data-event-description');
+    document.getElementById('eventDate').value = card.getAttribute('data-event-date');
+    document.getElementById('eventTime').value = card.getAttribute('data-event-time');
+    document.getElementById('eventLocation').value = card.getAttribute('data-event-location');
+    document.getElementById('eventMapLink').value = card.getAttribute('data-event-map');
+
+    // Show modal
     document.getElementById('eventModal').style.display = 'block';
 }
+
 
 function closeEventModal() {
     document.getElementById('eventModal').style.display = 'none';
