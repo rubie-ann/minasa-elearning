@@ -7,6 +7,7 @@
 <br><br><br><br>
 <input type="text" placeholder=" Search Content..." class="searchcontent">
 
+
 {% for category, sections in grouped_sections.items %}
     <div class="titlediv">{{ category }}</div>
     {% for section in sections %}
@@ -53,10 +54,40 @@
                 </div>
             </div>
         </div>
+        
     {% empty %}
         <div>No sections in this category.</div>
     {% endfor %}
 {% endfor %}
+
+<div class="video-section" style="text-align: center; margin: 40px auto; padding: 20px;">
+    <h2 style="text-align: center;">LEARN MORE OF MINASA FESTIVAL!</h2>
+    <iframe 
+        width="560" 
+        height="315" 
+        src="https://www.youtube.com/embed/Rio3g2zvoys?si=F9uMN6OzTUrTX-Xr" 
+        title="Minasa Festival" 
+        frameborder="5" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+        referrerpolicy="strict-origin-when-cross-origin" 
+        allowfullscreen
+        style="display: block; margin: 0 auto;">
+    </iframe>
+</div>
+
+<div class="video-section" style="text-align: center; margin: 40px auto; padding: 20px;">
+    <h2>WANNA LEARN ABOUT ARROWROOT CULTIVATION?</h2>
+    <iframe width="560" 
+        height="315" 
+        src="https://www.youtube.com/embed/qluhSFypo_k?si=mhY9XuuLagsN4goX" 
+        title="YouTube video player" 
+        frameborder="0" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+        referrerpolicy="strict-origin-when-cross-origin" 
+        allowfullscreen>
+    </ifr>
+</div>
+
 
 <!-- 🔹 POPUP MODAL -->
 <div id="sectionModal" class="modal">

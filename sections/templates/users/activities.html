@@ -3,51 +3,379 @@
 {% block title %}Activities{% endblock %}
 
 {% block content %}
-<br><br>
-<div class="container">
-    <h1 class="text-center mb-4">QUIZZES</h1>
+<style>
+    .quiz-page {
+        background: #fef9e7;
+        min-height: 100vh;
+        padding: 60px 0;
+    }
 
-    {% if quizzes %}
-        <div class="row">
-            {% for quiz in quizzes %}
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card h-100 shadow-sm">
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title">{{ quiz.title }}</h5>
-                            <p class="card-text">{{ quiz.description|truncatechars:100|default:"No description" }}</p>
-                            <p class="text-muted small">Questions: {{ quiz.questions.count }}</p>
-                            <p class="text-muted small">Created: {{ quiz.created_at|date:"M-d-Y" }}</p>
-                            <div class="mt-auto">
-                                <button class="btn btn-primary w-100" onclick="startQuiz({{ quiz.id }})">Take Quiz</button>
+    .quiz-title {
+        color: #d4af37;
+        font-size: 3rem;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 50px;
+        margin-top: 25px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .quiz-card {
+        background: white;
+        border-radius: 15px;
+        border: 2px solid #f4d03f;
+        height: 100%;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .quiz-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 30px rgba(212, 175, 55, 0.3);
+    }
+
+    .quiz-card-header {
+        background: #f4d03f;
+        color: #333;
+        padding: 20px;
+        text-align: center;
+        font-size: 1.4rem;
+        font-weight: bold;
+        border-radius: 13px 13px 0 0;
+    }
+
+    .quiz-card-body {
+        padding: 25px;
+        display: flex;
+        flex-direction: column;
+        height: calc(100% - 60px);
+    }
+
+    .quiz-description {
+        color: #666;
+        margin-bottom: 20px;
+        flex-grow: 1;
+    }
+
+    .quiz-meta {
+        background: #fef9e7;
+        padding: 12px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-around;
+    }
+
+    .quiz-meta-item {
+        text-align: center;
+    }
+
+    .quiz-meta-label {
+        font-size: 0.85rem;
+        color: #888;
+        text-transform: uppercase;
+        display: block;
+    }
+
+    .quiz-meta-value {
+        font-size: 1.2rem;
+        color: #d4af37;
+        font-weight: bold;
+    }
+
+    .btn-take-quiz {
+        background: #d4af37;
+        border: none;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-weight: bold;
+        width: 100%;
+        transition: all 0.3s ease;
+    }
+
+    .btn-take-quiz:hover {
+        background: #c19a2e;
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+    }
+
+    /* Modal Styles */
+    .modal-content {
+        border-radius: 20px;
+        border: 2px solid #f4d03f;
+    }
+
+    .modal-header {
+        background: #f4d03f;
+        color: #333;
+        padding: 25px;
+        border-radius: 18px 18px 0 0;
+    }
+
+    .modal-title {
+        font-size: 1.8rem;
+        font-weight: bold;
+    }
+
+    .modal-body {
+        background: #fef9e7;
+        padding: 30px;
+    }
+
+    .quiz-description-text {
+        color: #666;
+        font-style: italic;
+        margin-bottom: 20px;
+    }
+
+    /* Question Styles */
+    .question-container {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 25px;
+        border-left: 5px solid #d4af37;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    .question-header {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 20px;
+    }
+
+    .question-number-badge {
+        display: inline-block;
+        background: #d4af37;
+        color: white;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        margin-right: 10px;
+    }
+
+    /* Answer Options */
+    .answer-option {
+        background: #fef9e7;
+        border: 2px solid #f4d03f;
+        border-radius: 12px;
+        padding: 15px 20px;
+        margin-bottom: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+    }
+
+    .answer-option:hover {
+        background: #fff9db;
+        border-color: #d4af37;
+        transform: translateX(5px);
+    }
+
+    .answer-option input[type="radio"] {
+        width: 20px;
+        height: 20px;
+        margin-right: 15px;
+        cursor: pointer;
+        accent-color: #d4af37;
+    }
+
+    .answer-option label {
+        cursor: pointer;
+        margin: 0;
+        font-size: 1.05rem;
+        color: #333;
+        flex: 1;
+    }
+
+    .answer-option:has(input:checked) {
+        background: #fff9db;
+        border-color: #d4af37;
+    }
+
+    .answer-option:has(input:checked) label {
+        color: #d4af37;
+        font-weight: bold;
+    }
+
+    /* Results Styles */
+    .results-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .score-display {
+        font-size: 3.5rem;
+        font-weight: bold;
+        color: #d4af37;
+        margin: 20px 0;
+    }
+
+    .score-text {
+        font-size: 1.2rem;
+        color: #666;
+    }
+
+    .review-section {
+        margin-top: 30px;
+    }
+
+    .review-title {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 20px;
+    }
+
+    .answer-review {
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-left: 5px solid;
+    }
+
+    .answer-review.correct {
+        background: #d4edda;
+        border-left-color: #28a745;
+    }
+
+    .answer-review.incorrect {
+        background: #f8d7da;
+        border-left-color: #dc3545;
+    }
+
+    .review-question {
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: #333;
+    }
+
+    .review-detail {
+        margin: 8px 0;
+        color: #555;
+    }
+
+    .result-badge {
+        display: inline-block;
+        padding: 6px 15px;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 0.95rem;
+        margin-top: 10px;
+    }
+
+    .result-badge.correct {
+        background: #28a745;
+        color: white;
+    }
+
+    .result-badge.incorrect {
+        background: #dc3545;
+        color: white;
+    }
+
+    /* Buttons */
+    .modal-footer {
+        background: #fef9e7;
+        padding: 20px;
+        border-top: 1px solid #f4d03f;
+    }
+
+    .btn-secondary {
+        border-radius: 25px;
+        padding: 10px 25px;
+    }
+
+    .btn-submit {
+        background: #d4af37;
+        border: none;
+        color: white;
+        padding: 12px 35px;
+        border-radius: 25px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+
+    .btn-submit:hover {
+        background: #c19a2e;
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+    }
+
+    .no-quizzes {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 15px;
+        border: 2px solid #f4d03f;
+    }
+
+    .no-quizzes-text {
+        color: #888;
+        font-size: 1.2rem;
+    }
+</style>
+
+<div class="quiz-page">
+    <div class="container">
+        <h1 class="quiz-title">QUIZZES</h1>
+
+        {% if quizzes %}
+            <div class="row">
+                {% for quiz in quizzes %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="quiz-card">
+                            <div class="quiz-card-header">
+                                {{ quiz.title }}
+                            </div>
+                            <div class="quiz-card-body">
+                                <p class="quiz-description">
+                                    {{ quiz.description|truncatechars:100|default:"No description available" }}
+                                </p>
+                                <div class="quiz-meta">
+                                    <div class="quiz-meta-item">
+                                        <span class="quiz-meta-label">Questions</span>
+                                        <span class="quiz-meta-value">{{ quiz.questions.count }}</span>
+                                    </div>
+                                    <div class="quiz-meta-item">
+                                        <span class="quiz-meta-label">Created</span>
+                                        <span class="quiz-meta-value">{{ quiz.created_at|date:"M d" }}</span>
+                                    </div>
+                                </div>
+                                <button class="btn-take-quiz" onclick="startQuiz({{ quiz.id }})">
+                                    Take Quiz
+                                </button>
                             </div>
                         </div>
                     </div>
-                </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <div class="text-center">
-            <p class="text-muted">No quizzes available at the moment.</p>
-        </div>
-    {% endif %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-quizzes">
+                <p class="no-quizzes-text">No quizzes available at the moment.</p>
+            </div>
+        {% endif %}
+    </div>
 </div>
 
 <!-- Quiz Modal -->
-<div class="modal fade" id="quizModal" tabindex="-1" aria-labelledby="quizModalLabel" aria-hidden="true">
+<div class="modal fade" id="quizModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="quizModalLabel">Quiz</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div id="quizContent">
-                    <!-- Quiz content will be loaded here -->
-                </div>
+                <div id="quizContent"></div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="submitQuizBtn" style="display: none;">Submit Quiz</button>
+                <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> -->
+                <button type="button" class="btn-submit" id="submitQuizBtn" style="display: none;">
+                    Submit Quiz
+                </button>
             </div>
         </div>
     </div>
@@ -62,7 +390,6 @@ function startQuiz(quizId) {
     currentQuizId = quizId;
     userAnswers = {};
 
-    // Fetch quiz data
     fetch(`/users/api/quiz/${quizId}/`)
         .then(response => response.json())
         .then(data => {
@@ -79,24 +406,31 @@ function startQuiz(quizId) {
 function displayQuiz(quizData) {
     const quizContent = document.getElementById('quizContent');
     let html = `<h4>${quizData.title}</h4>`;
+    
     if (quizData.description) {
-        html += `<p class="text-muted">${quizData.description}</p>`;
+        html += `<p class="quiz-description-text">${quizData.description}</p>`;
     }
     html += '<hr>';
 
     quizData.questions.forEach((question, index) => {
         html += `
-            <div class="question mb-4">
-                <h6>Question ${index + 1}: ${question.text}</h6>
+            <div class="question-container">
+                <div class="question-header">
+                    <span class="question-number-badge">${index + 1}</span>
+                    ${question.text}
+                </div>
                 <div class="answers">
         `;
 
         question.answers.forEach((answer, answerIndex) => {
-            const optionLetter = String.fromCharCode(65 + answerIndex); // A, B, C, D
+            const optionLetter = String.fromCharCode(65 + answerIndex);
             html += `
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="question_${question.id}" value="${optionLetter}" id="answer_${question.id}_${optionLetter}">
-                    <label class="form-check-label" for="answer_${question.id}_${optionLetter}">
+                <div class="answer-option">
+                    <input type="radio" 
+                           name="question_${question.id}" 
+                           value="${optionLetter}" 
+                           id="answer_${question.id}_${optionLetter}">
+                    <label for="answer_${question.id}_${optionLetter}">
                         ${optionLetter}. ${answer.text}
                     </label>
                 </div>
@@ -111,7 +445,6 @@ function displayQuiz(quizData) {
 }
 
 document.getElementById('submitQuizBtn').addEventListener('click', function() {
-    // Collect user answers
     const answers = {};
     let answeredQuestions = 0;
 
@@ -119,7 +452,7 @@ document.getElementById('submitQuizBtn').addEventListener('click', function() {
         const selectedAnswer = document.querySelector(`input[name="question_${question.id}"]:checked`);
         if (selectedAnswer) {
             answers[question.id] = selectedAnswer.value;
-            userAnswers[question.id] = selectedAnswer.value; // Store for results display
+            userAnswers[question.id] = selectedAnswer.value;
             answeredQuestions++;
         }
     });
@@ -129,37 +462,44 @@ document.getElementById('submitQuizBtn').addEventListener('click', function() {
         return;
     }
 
-    // Calculate results
     let correctAnswers = 0;
     currentQuestions.forEach(question => {
-        const userAnswer = answers[question.id];
-        const correctAnswer = question.correct_answer;
-        if (userAnswer === correctAnswer) {
+        if (answers[question.id] === question.correct_answer) {
             correctAnswers++;
         }
     });
 
     const score = Math.round((correctAnswers / currentQuestions.length) * 100);
-
-    // Display results
     displayResults(correctAnswers, currentQuestions.length, score);
 });
 
 function displayResults(correct, total, score) {
     const quizContent = document.getElementById('quizContent');
-    let html = '<h4>Quiz Results</h4>';
-    html += `<p class="h5">Your Score: ${score}%</p>`;
-    html += `<p>You got ${correct} out of ${total} questions correct.</p>`;
-
-    if (score >= 80) {
-        html += '<div class="alert alert-success">Excellent! You did great!</div>';
-    } else if (score >= 60) {
-        html += '<div class="alert alert-warning">Good job! Keep practicing.</div>';
-    } else {
-        html += '<div class="alert alert-danger">Keep studying and try again!</div>';
+    
+    let feedbackClass = 'alert-success';
+    let feedbackMessage = 'Excellent! You did great!';
+    
+    if (score < 60) {
+        feedbackClass = 'alert-danger';
+        feedbackMessage = 'Keep studying and try again!';
+    } else if (score < 80) {
+        feedbackClass = 'alert-warning';
+        feedbackMessage = 'Good job! Keep practicing.';
     }
 
-    html += '<hr><h5>Review Your Answers:</h5>';
+    let html = `
+        <div class="results-header">
+            <h4>Quiz Results</h4>
+            <div class="score-display">${score}%</div>
+            <p class="score-text">You got ${correct} out of ${total} questions correct</p>
+            <div class="alert ${feedbackClass}" style="border-radius: 15px; margin-top: 20px;">
+                <strong>${feedbackMessage}</strong>
+            </div>
+        </div>
+        <hr>
+        <div class="review-section">
+            <h5 class="review-title">📋 Review Your Answers</h5>
+    `;
 
     currentQuestions.forEach((question, index) => {
         const userAnswer = userAnswers[question.id] || 'Not answered';
@@ -167,20 +507,18 @@ function displayResults(correct, total, score) {
         const isCorrect = userAnswer === correctAnswer;
 
         html += `
-            <div class="question-review mb-3 p-3 border rounded ${isCorrect ? 'bg-light' : 'bg-danger bg-opacity-10'}">
-                <h6>Question ${index + 1}: ${question.text}</h6>
-                <p><strong>Your answer:</strong> ${userAnswer}</p>
-                <p><strong>Correct answer:</strong> ${correctAnswer}</p>
-                <p class="${isCorrect ? 'text-success' : 'text-danger'}">
-                    <strong>${isCorrect ? '✓ Correct' : '✗ Incorrect'}</strong>
-                </p>
+            <div class="answer-review ${isCorrect ? 'correct' : 'incorrect'}">
+                <div class="review-question">Question ${index + 1}: ${question.text}</div>
+                <div class="review-detail"><strong>Your answer:</strong> ${userAnswer}</div>
+                <div class="review-detail"><strong>Correct answer:</strong> ${correctAnswer}</div>
+                <span class="result-badge ${isCorrect ? 'correct' : 'incorrect'}">
+                    ${isCorrect ? '✓ Correct' : '✗ Incorrect'}
+                </span>
             </div>
         `;
     });
 
-    // Store user answers for potential future use (though not saved to database as requested)
-    console.log('User answers:', userAnswers);
-
+    html += '</div>';
     quizContent.innerHTML = html;
     document.getElementById('submitQuizBtn').style.display = 'none';
 }
