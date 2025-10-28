@@ -25,6 +25,7 @@ urlpatterns = [
     path('users/', include('sections.urls')),
     path('', views.login_view, name='login'),  # default page is login
     path('adminpage/admin-dashboard/', views.admin_dashboard, name='adminpage-admin-dashboard'),
+    path('adminpage/minasa-products/', views.adminpage_minasa_products, name='adminpage-minasa-products'),
     path('adminpage/user-management/', views.user_management, name='adminpage-user-management'),
     path('adminpage/content-manager/', views.content_manager, name='adminpage-content-manager'),
     path('adminpage/category-manager/', views.category_manager, name='adminpage-category-manager'),

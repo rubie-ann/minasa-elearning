@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Section, Profile
+from .models import Section, Profile, MinasaProduct
 from django.utils.html import format_html
 from .models import FestivalEvent, Category, Quiz, Question, Answer
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
@@ -37,6 +37,24 @@ class CategoryAdmin(admin.ModelAdmin):
     list_filter = ("created_at",)
     fields = ("name", "description", "created_at", "updated_at")
     readonly_fields = ("created_at", "updated_at")
+
+# Register MinasaProduct model - THIS IS THE IMPORTANT ONE
+@admin.register(MinasaProduct)
+class MinasaProductAdmin(admin.ModelAdmin):
+    list_display = ('product_name', 'price', 'image', 'id')
+    search_fields = ('product_name', 'description')
+    list_filter = ('price',)
+    ordering = ('-id',)
+    
+    # Optional: Make the admin interface more user-friendly
+    fieldsets = (
+        ('Product Information', {
+            'fields': ('product_name', 'description', 'price')
+        }),
+        ('Media', {
+            'fields': ('image',)
+        }),
+    )
 
 class ProfileInline(admin.StackedInline):
     model = Profile

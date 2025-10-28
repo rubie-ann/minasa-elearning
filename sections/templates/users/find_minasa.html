@@ -4,7 +4,379 @@
 {% block title %}Find Minasa Products{% endblock %}
 
 {% block content %}
-<br><br><br>
-<h1>Find Minasa Products</h1>
-<p>This page will soon show an interactive map of where to buy Minasa products.</p>
+<style>
+    .map-container {
+        margin: 2rem auto;
+        margin-top: 75px;
+        max-width: 1200px;
+        padding: 0 1rem;
+    }
+
+    .map-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .map-header h1 {
+        color: #2c5f2d;
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .map-header p {
+        color: #666;
+        font-size: 1.1rem;
+    }
+
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .product-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+        cursor: pointer;
+    }
+
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    }
+
+    .product-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        background: #f0f0f0;
+    }
+
+    .product-info {
+        padding: 1.5rem;
+    }
+
+    .product-name {
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: #2c5f2d;
+        margin-bottom: 0.5rem;
+    }
+
+    .product-price {
+        font-size: 1.5rem;
+        color: #4a7c59;
+        font-weight: bold;
+        margin-bottom: 1rem;
+    }
+
+    .product-description {
+        color: #666;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .map-wrapper {
+        width: 100%;
+        height: 500px;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+
+    #map {
+        width: 100%;
+        height: 100%;
+    }
+
+    .filter-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .search-box {
+        flex: 1;
+        min-width: 250px;
+    }
+
+    .search-box input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+    }
+
+    .search-box input:focus {
+        outline: none;
+        border-color: #4a7c59;
+    }
+
+    .product-count {
+        color: #666;
+        font-size: 1rem;
+    }
+
+    .no-products {
+        text-align: center;
+        padding: 3rem;
+        color: #999;
+        font-size: 1.1rem;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+        background: white;
+        margin: 5% auto;
+        padding: 0;
+        border-radius: 16px;
+        max-width: 600px;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    .modal-header {
+        position: relative;
+        padding: 0;
+    }
+
+    .modal-image {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+    }
+
+    .modal-body {
+        padding: 2rem;
+    }
+
+    .modal-title {
+        font-size: 2rem;
+        color: #2c5f2d;
+        margin-bottom: 1rem;
+    }
+
+    .modal-price {
+        font-size: 2rem;
+        color: #4a7c59;
+        font-weight: bold;
+        margin-bottom: 1.5rem;
+    }
+
+    .modal-description {
+        color: #444;
+        line-height: 1.8;
+        font-size: 1.05rem;
+    }
+
+    .close {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        color: white;
+        font-size: 2rem;
+        font-weight: bold;
+        cursor: pointer;
+        width: 40px;
+        height: 40px;
+        background: rgba(0,0,0,0.5);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.3s;
+    }
+
+    .close:hover {
+        background: rgba(0,0,0,0.7);
+    }
+
+    @media (max-width: 768px) {
+        .map-header h1 {
+            font-size: 2rem;
+        }
+        
+        .products-grid {
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .map-wrapper {
+            height: 400px;
+        }
+    }
+</style>
+
+<div class="map-container">
+    <div class="map-header">
+        <h1>Find Minasa Products</h1>
+        <p>Discover authentic Minasa products available in your area</p>
+    </div>
+
+    <div class="map-wrapper">
+        <div id="map"></div>
+    </div>
+
+    <div class="filter-section">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 Search products...">
+        </div>
+        <div class="product-count">
+            <strong id="productCount">{{ products.count }}</strong> product(s) available
+        </div>
+    </div>
+
+    <div class="products-grid" id="productsGrid">
+        {% if products %}
+            {% for product in products %}
+            <div class="product-card" onclick="showProductDetails({{ product.id }})">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.product_name }}" class="product-image">
+                {% else %}
+                    <img src="{% static 'images/placeholder-product.png' %}" alt="{{ product.product_name }}" class="product-image">
+                {% endif %}
+                <div class="product-info">
+                    <div class="product-name">{{ product.product_name }}</div>
+                    <div class="product-price">₱{{ product.price }}</div>
+                    <div class="product-description">{{ product.description|truncatewords:20 }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-products">
+                <p>No products available at the moment. Please check back later!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+
+<div id="productModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <img id="modalImage" src="" alt="" class="modal-image">
+        </div>
+        <div class="modal-body">
+            <h2 class="modal-title" id="modalTitle"></h2>
+            <div class="modal-price" id="modalPrice"></div>
+            <p class="modal-description" id="modalDescription"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Product data from Django template
+    const products = [
+        {% for product in products %}
+        {
+            id: {{ product.id }},
+            name: "{{ product.product_name|escapejs }}",
+            price: "{{ product.price }}",
+            description: "{{ product.description|escapejs }}",
+            image: "{% if product.image %}{{ product.image.url }}{% else %}{% static 'images/placeholder-product.png' %}{% endif %}"
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    let map;
+    function initMap() {
+        map = L.map('map').setView([14.6760, 121.0437], 12);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // locations for Minasa products (customize)
+        const locations = [
+            { lat: 14.6760, lng: 121.0437, name: "Main Store - Quezon City" },
+            { lat: 14.6500, lng: 121.0500, name: "Branch - Commonwealth" },
+            { lat: 14.7000, lng: 121.0300, name: "Partner Store - Fairview" }
+        ];
+
+        // markers
+        locations.forEach(location => {
+            const marker = L.marker([location.lat, location.lng]).addTo(map);
+            marker.bindPopup(`<b>${location.name}</b><br>Minasa Products Available`);
+        });
+    }
+
+    // product details modal
+    function showProductDetails(productId) {
+        const product = products.find(p => p.id === productId);
+        if (product) {
+            document.getElementById('modalTitle').textContent = product.name;
+            document.getElementById('modalPrice').textContent = '₱' + product.price;
+            document.getElementById('modalDescription').textContent = product.description;
+            document.getElementById('modalImage').src = product.image;
+            document.getElementById('modalImage').alt = product.name;
+            document.getElementById('productModal').style.display = 'block';
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('productModal').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('productModal');
+        if (event.target === modal) {
+            closeModal();
+        }
+    }
+
+    document.getElementById('searchInput').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const productCards = document.querySelectorAll('.product-card');
+        let visibleCount = 0;
+
+        productCards.forEach(card => {
+            const productName = card.querySelector('.product-name').textContent.toLowerCase();
+            const productDesc = card.querySelector('.product-description').textContent.toLowerCase();
+            
+            if (productName.includes(searchTerm) || productDesc.includes(searchTerm)) {
+                card.style.display = 'block';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        document.getElementById('productCount').textContent = visibleCount;
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initMap();
+    });
+</script>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 {% endblock %}

@@ -35,8 +35,396 @@
     .logo-container img:hover {
         transform: scale(1.05);
     }
+
+    /* Products Grid */
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 25px;
+        padding: 20px;
+    }
+
+    .product-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    }
+
+    .product-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 15px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .product-checkbox {
+        display: flex;
+        align-items: center;
+    }
+
+    .product-checkbox input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+
+    .product-id {
+        font-size: 12px;
+        color: #6c757d;
+        font-weight: 600;
+    }
+
+    .product-image-container {
+        width: 100%;
+        height: 200px;
+        overflow: hidden;
+        background: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .product-image-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .product-image-container.no-image {
+        color: #adb5bd;
+        font-size: 14px;
+    }
+
+    .product-info {
+        padding: 20px;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .product-name {
+        font-size: 18px;
+        font-weight: 700;
+        color: #212529;
+        margin-bottom: 10px;
+        line-height: 1.3;
+    }
+
+    .product-price {
+        font-size: 24px;
+        font-weight: 800;
+        color: #28a745;
+        margin-bottom: 12px;
+    }
+
+    .product-description {
+        font-size: 14px;
+        color: #6c757d;
+        line-height: 1.5;
+        flex-grow: 1;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .product-actions {
+        display: flex;
+        gap: 8px;
+        padding: 15px;
+        border-top: 1px solid #e9ecef;
+        background: #f8f9fa;
+    }
+
+    .product-actions button {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .btn-edit {
+        background: #ffc107;
+        color: #000;
+    }
+
+    .btn-edit:hover {
+        background: #e0a800;
+    }
+
+    .btn-delete {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-delete:hover {
+        background: #c82333;
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.5);
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 3% auto;
+        padding: 30px;
+        border: 1px solid #888;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 600px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        line-height: 20px;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: #000;
+    }
+
+    .modal h2 {
+        margin-top: 0;
+        margin-bottom: 25px;
+        color: #212529;
+        font-size: 24px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #333;
+        font-size: 14px;
+    }
+
+    .form-group input[type="text"],
+    .form-group input[type="number"],
+    .form-group textarea,
+    .form-group input[type="file"] {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        font-size: 14px;
+        box-sizing: border-box;
+        transition: border-color 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #28a745;
+    }
+
+    .form-group textarea {
+        min-height: 120px;
+        resize: vertical;
+        font-family: inherit;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 25px;
+    }
+
+    .form-actions button {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #5a6268;
+    }
+
+    .btn-success {
+        background: #28a745;
+        color: white;
+    }
+
+    .btn-success:hover {
+        background: #218838;
+    }
+
+    .btn-warning {
+        background: #ffc107;
+        color: #000;
+    }
+
+    .btn-warning:hover {
+        background: #e0a800;
+    }
+
+    .image-preview {
+        margin-top: 10px;
+        max-width: 100%;
+        max-height: 300px;
+        border-radius: 8px;
+        display: none;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    #current_image_container {
+        margin-top: 15px;
+    }
+
+    #current_image_container p {
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    #current_image {
+        max-width: 100%;
+        max-height: 250px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    /* Filter Section */
+    .filter-section {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 25px;
+        padding: 0 20px;
+    }
+
+    .search-box input {
+        padding: 12px 16px;
+        width: 350px;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border-color 0.3s ease;
+    }
+
+    .search-box input:focus {
+        outline: none;
+        border-color: #28a745;
+    }
+
+    .btn-delete-selected {
+        padding: 12px 20px;
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: auto;
+    }
+
+    .btn-delete-selected:hover {
+        background: #c82333;
+    }
+
+    /* Header Section */
+    .products-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 20px;
+        margin-bottom: 20px;
+    }
+
+    .products-header h2 {
+        color: #212529;
+        font-size: 22px;
+        margin: 0;
+    }
+
+    .btn-add-product {
+        padding: 12px 24px;
+        background: #28a745;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-add-product:hover {
+        background: #218838;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+
+    .no-products {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6c757d;
+    }
+
+    .no-products i {
+        font-size: 64px;
+        margin-bottom: 20px;
+        opacity: 0.3;
+    }
 </style>
 <link rel="stylesheet" href="{% static 'css/adminside.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <div class="admin-sidebar">
     <div class="sidebar-header">
@@ -71,10 +459,340 @@
     
     <div class="admin-panels">
         <section class="panel">
-            <h2>Minasa Products</h2>
-            <p>Minasa products management will be implemented here.</p>
+            <div class="products-header">
+                <h2>Minasa Products ({{ total_products }})</h2>
+                <button class="btn-add-product" onclick="openAddModal()">
+                    <i class="fas fa-plus"></i> Add New Product
+                </button>
+            </div>
+
+            <div class="filter-section">
+                <div class="search-box">
+                    <input type="text" id="searchProducts" placeholder="🔍 Search products..." 
+                           onkeyup="searchProducts()">
+                </div>
+                <button class="btn-delete-selected" onclick="deleteSelected()">
+                    <i class="fas fa-trash"></i> Delete Selected
+                </button>
+            </div>
+
+            {% if products %}
+            <div class="products-grid" id="productsGrid">
+                {% for product in products %}
+                <div class="product-card"
+                    data-product-id="{{ product.id }}"
+                    data-product-name="{{ product.product_name }}"
+                    data-product-description="{{ product.description|default:'' }}"
+                    data-product-price="{{ product.price|default:'0' }}"
+                    data-product-image="{{ product.image.url|default:'' }}">
+
+                    <div class="product-card-header">
+                        <div class="product-checkbox">
+                            <input type="checkbox" name="selected_products" value="{{ product.id }}">
+                        </div>
+                        <div class="product-id">
+                            ID: {{ product.id }}
+                        </div>
+                    </div>
+
+                    <div class="product-image-container {% if not product.image %}no-image{% endif %}">
+                        {% if product.image %}
+                            <img src="{{ product.image.url }}" alt="{{ product.product_name }}">
+                        {% else %}
+                            <i class="fas fa-image"></i>
+                        {% endif %}
+                    </div>
+
+                    <div class="product-info">
+                        <h3 class="product-name">{{ product.product_name }}</h3>
+                        <div class="product-price">₱{{ product.price|floatformat:2 }}</div>
+                        <p class="product-description">{{ product.description|default:"No description" }}</p>
+                    </div>
+
+                    <div class="product-actions">
+                        <button class="btn-edit" onclick="editProduct({{ product.id }})">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="btn-delete" onclick="deleteProduct({{ product.id }})">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="no-products">
+                <i class="fas fa-box-open"></i>
+                <h3>No products yet</h3>
+                <p>Click "Add New Product" to create your first product.</p>
+            </div>
+            {% endif %}
         </section>
     </div>
 </div>
-{% endblock %}
 
+<!-- Add Product Modal -->
+<div id="addModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeAddModal()">&times;</span>
+        <h2>Add New Product</h2>
+        <form id="addProductForm" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add">
+            
+            <div class="form-group">
+                <label for="add_product_name">Product Name *</label>
+                <input type="text" id="add_product_name" name="product_name" required placeholder="Enter product name">
+            </div>
+
+            <div class="form-group">
+                <label for="add_price">Price (₱) *</label>
+                <input type="number" id="add_price" name="price" step="0.01" min="0" required placeholder="0.00">
+            </div>
+            
+            <div class="form-group">
+                <label for="add_description">Description *</label>
+                <textarea id="add_description" name="description" required placeholder="Enter product description"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="add_image">Product Image</label>
+                <input type="file" id="add_image" name="image" accept="image/*" onchange="previewAddImage(event)">
+                <img id="add_image_preview" class="image-preview" alt="Image preview">
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" class="btn-secondary" onclick="closeAddModal()">Cancel</button>
+                <button type="submit" class="btn-success">Add Product</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Product Modal -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeEditModal()">&times;</span>
+        <h2>Edit Product</h2>
+        <form id="editProductForm" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="edit">
+            <input type="hidden" id="edit_product_id" name="product_id">
+            
+            <div class="form-group">
+                <label for="edit_product_name">Product Name *</label>
+                <input type="text" id="edit_product_name" name="product_name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="edit_price">Price (₱) *</label>
+                <input type="number" id="edit_price" name="price" step="0.01" min="0" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="edit_description">Description *</label>
+                <textarea id="edit_description" name="description" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="edit_image">Product Image</label>
+                <input type="file" id="edit_image" name="image" accept="image/*" onchange="previewEditImage(event)">
+                <img id="edit_image_preview" class="image-preview" alt="Image preview">
+                <div id="current_image_container" style="margin-top: 10px; display: none;">
+                    <p>Current Image:</p>
+                    <img id="current_image">
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" class="btn-secondary" onclick="closeEditModal()">Cancel</button>
+                <button type="submit" class="btn-warning">Update Product</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const csrftoken = getCookie('csrftoken');
+
+    // Add Product Modal Functions
+    function openAddModal() {
+        document.getElementById('addModal').style.display = 'block';
+        document.getElementById('addProductForm').reset();
+        document.getElementById('add_image_preview').style.display = 'none';
+    }
+
+    function closeAddModal() {
+        document.getElementById('addModal').style.display = 'none';
+    }
+
+    function previewAddImage(event) {
+        const preview = document.getElementById('add_image_preview');
+        const file = event.target.files[0];
+        
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // Edit Product Modal Functions
+    function editProduct(productId) {
+        const card = document.querySelector(`[data-product-id="${productId}"]`);
+        const productName = card.getAttribute('data-product-name');
+        const productDescription = card.getAttribute('data-product-description');
+        const productPrice = card.getAttribute('data-product-price');
+        const productImage = card.getAttribute('data-product-image');
+
+        document.getElementById('edit_product_id').value = productId;
+        document.getElementById('edit_product_name').value = productName;
+        document.getElementById('edit_price').value = productPrice;
+        document.getElementById('edit_description').value = productDescription;
+        
+        // Show current image if exists
+        if (productImage) {
+            document.getElementById('current_image').src = productImage;
+            document.getElementById('current_image_container').style.display = 'block';
+        } else {
+            document.getElementById('current_image_container').style.display = 'none';
+        }
+        
+        document.getElementById('edit_image_preview').style.display = 'none';
+        document.getElementById('editModal').style.display = 'block';
+    }
+
+    function closeEditModal() {
+        document.getElementById('editModal').style.display = 'none';
+    }
+
+    function previewEditImage(event) {
+        const preview = document.getElementById('edit_image_preview');
+        const file = event.target.files[0];
+        
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // Delete Single Product
+    function deleteProduct(productId) {
+        if (confirm('Are you sure you want to delete this product?')) {
+            const formData = new FormData();
+            formData.append('action', 'delete');
+            formData.append('product_id', productId);
+            formData.append('csrfmiddlewaretoken', csrftoken);
+
+            fetch(window.location.href, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': csrftoken
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while deleting the product.');
+            });
+        }
+    }
+
+    // Delete Multiple Products
+    function deleteSelected() {
+        const checkboxes = document.querySelectorAll('input[name="selected_products"]:checked');
+        
+        if (checkboxes.length === 0) {
+            alert('Please select at least one product to delete.');
+            return;
+        }
+
+        if (confirm(`Are you sure you want to delete ${checkboxes.length} product(s)?`)) {
+            const formData = new FormData();
+            formData.append('action', 'delete_multiple');
+            
+            checkboxes.forEach(checkbox => {
+                formData.append('selected_products', checkbox.value);
+            });
+            
+            formData.append('csrfmiddlewaretoken', csrftoken);
+
+            fetch(window.location.href, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': csrftoken
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while deleting the products.');
+            });
+        }
+    }
+
+    // Search Products
+    function searchProducts() {
+        const searchTerm = document.getElementById('searchProducts').value.toLowerCase();
+        const cards = document.querySelectorAll('.product-card');
+
+        cards.forEach(card => {
+            const productName = card.getAttribute('data-product-name').toLowerCase();
+            const productDescription = card.getAttribute('data-product-description').toLowerCase();
+
+            if (productName.includes(searchTerm) || productDescription.includes(searchTerm)) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    // Close modals when clicking outside
+    window.onclick = function(event) {
+        const addModal = document.getElementById('addModal');
+        const editModal = document.getElementById('editModal');
+        
+        if (event.target === addModal) {
+            closeAddModal();
+        }
+        if (event.target === editModal) {
+            closeEditModal();
+        }
+    }
+</script>
+
+{% endblock %}

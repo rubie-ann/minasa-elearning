@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm
-from .models import Section, Category, Quiz, Question, Answer
+from .models import Section, Category, Quiz, Question, Answer, MinasaProduct
 from collections import defaultdict
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import AuthenticationForm
@@ -168,7 +168,7 @@ def admin_dashboard(request):
             'total_educational_sections': Section.objects.count(),
             'total_festival_events': FestivalEvent.objects.count(),
             'total_activities': 0,  # Placeholder - you can add actual activity model later
-            'total_minasa_products': 0,  # Placeholder - you can add actual products model later
+            'total_minasa_products': MinasaProduct.objects.count(),
         }
         return render(request, 'adminpage/admin-dashboard.html', context)
     else:
@@ -655,9 +655,72 @@ def adminpage_festival_calendar(request):
 @login_required
 def adminpage_minasa_products(request):
     if request.user.username == 'admin' or request.user.is_superuser:
-        return render(request, 'adminpage/adminpage-minasa-products.html')
-    return redirect('home')
+        if request.method == 'POST':
+            action = request.POST.get('action')
 
+            if action == 'add':
+                product_name = request.POST.get('product_name')
+                description = request.POST.get('description')
+                price = request.POST.get('price')  # ADD THIS LINE
+                image = request.FILES.get('image')
+
+                if product_name and description and price:  # UPDATE THIS LINE
+                    product = MinasaProduct.objects.create(
+                        product_name=product_name,
+                        description=description,
+                        price=price  # ADD THIS LINE
+                    )
+                    if image:
+                        product.image = image
+                        product.save()
+                    messages.success(request, f'Product "{product_name}" has been added successfully.')
+                else:
+                    messages.error(request, 'Please fill in all required fields.')
+
+            elif action == 'edit':
+                product_id = request.POST.get('product_id')
+                try:
+                    product = MinasaProduct.objects.get(id=product_id)
+                    product.product_name = request.POST.get('product_name')
+                    product.description = request.POST.get('description')
+                    product.price = request.POST.get('price')  # ADD THIS LINE
+
+                    if request.FILES.get('image'):
+                        product.image = request.FILES.get('image')
+
+                    product.save()
+                    messages.success(request, f'Product "{product.product_name}" has been updated successfully.')
+                except MinasaProduct.DoesNotExist:
+                    messages.error(request, 'Product not found.')
+
+            elif action == 'delete':
+                product_id = request.POST.get('product_id')
+                try:
+                    product = MinasaProduct.objects.get(id=product_id)
+                    product_name = product.product_name
+                    product.delete()
+                    messages.success(request, f'Product "{product_name}" has been deleted successfully.')
+                except MinasaProduct.DoesNotExist:
+                    messages.error(request, 'Product not found.')
+
+            elif action == 'delete_multiple':
+                product_ids = request.POST.getlist('selected_products')
+                if product_ids:
+                    MinasaProduct.objects.filter(id__in=product_ids).delete()
+                    messages.success(request, f'{len(product_ids)} product(s) deleted successfully!')
+                else:
+                    messages.warning(request, 'No products selected for deletion!')
+
+        # Get all products
+        products = MinasaProduct.objects.all().order_by('-id')
+
+        context = {
+            'products': products,
+            'total_products': products.count(),
+        }
+
+        return render(request, 'adminpage/adminpage-minasa-products.html', context)
+    return redirect('home')
 @login_required
 def quiz_view(request, quiz_id):
     if request.user.username == 'admin' or request.user.is_superuser:
@@ -813,6 +876,16 @@ def signup(request):
     else:
         form = UserCreationForm()
     return render(request, 'registration/signup.html', {'form': form})
+
+def find_minasa(request):
+    # Retrieve all Minasa products from the database
+    products = MinasaProduct.objects.all().order_by('-id')
+    
+    context = {
+        'products': products,
+    }
+    
+    return render(request, 'users/find_minasa.html', context)
 
 def logout_view(request):
     logout(request)
