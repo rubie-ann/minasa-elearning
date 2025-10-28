@@ -271,6 +271,22 @@ h1, h2, h3, div, a {
   color: black;
   font-weight: 600;
 }
+
+.btn-secondary{
+    padding: 10px 20px;
+    background: #fbbf24;
+    width: 95%;
+    color: black;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* .btn-secondary:hover {
+  background: #fbbf24;
+  color: black;
+  font-weight: 600;
+} */
 /* ---------- MESSAGE MODAL - PROFILE ---------- */
 .modal-message {
     position: fixed;

@@ -52,9 +52,13 @@
                 <input type="text" value="{{ user.username }}" disabled>
             </div>
             <button type="submit" class="btn-primary">Update</button>
-        </div>
+        
     </form>
-</div>
+    <form method="post" action="{% url 'logout' %}" style="margin-top: 20px;">
+        {% csrf_token %}
+        <button type="submit" class="btn-secondary">Logout</button>
+    </form>
+</div></div>
 
 <script>
 const input = document.getElementById('id_image');

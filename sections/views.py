@@ -12,6 +12,10 @@ from .models import FestivalEvent
 from datetime import date, datetime
 from django.contrib.auth.models import User
 from django.http import JsonResponse
+# from django.contrib.auth.views import LogoutView
+from django.contrib.auth import logout
+
+
 
 
 
@@ -809,3 +813,7 @@ def signup(request):
     else:
         form = UserCreationForm()
     return render(request, 'registration/signup.html', {'form': form})
+
+def logout_view(request):
+    logout(request)
+    return redirect('/')
