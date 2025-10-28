@@ -445,10 +445,20 @@
         <li><a href="{% url 'adminpage-admin-dashboard' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
         <li><a href="{% url 'adminpage-user-management' %}"><i class="fas fa-users"></i> User Management</a></li>
         <li><a href="#" class="active"><i class="fas fa-layer-group"></i> Content Manager</a></li>
+        <li><a href="{% url 'adminpage-category-manager' %}"><i class="fas fa-tags"></i> Categories</a></li>
+        <li><a href="{% url 'adminpage-minasa-products' %}"><i class="fas fa-shopping-bag"></i> Minasa Products</a></li>
+        <li><a href="{% url 'adminpage-activities' %}"><i class="fas fa-calendar"></i> Activities</a></li>
+        <li><a href="{% url 'adminpage-festival-calendar' %}"><i class="fas fa-star"></i> Events</a></li>
+        <!-- <li><a href="{% url 'home' %}"><i class="fas fa-home"></i> Back to Home</a></li> -->
+    </ul>
+    <!-- <ul class="admin-nav">
+        <li><a href="{% url 'adminpage-admin-dashboard' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+        <li><a href="{% url 'adminpage-user-management' %}"><i class="fas fa-users"></i> User Management</a></li>
+        <li><a href="#" class="active"><i class="fas fa-layer-group"></i> Content Manager</a></li>
         <li><a href="{% url 'adminpage-minasa-products' %}"><i class="fas fa-shopping-bag"></i> Minasa Products</a></li>
         <li><a href="{% url 'adminpage-activities' %}"><i class="fas fa-calendar"></i> Activities</a></li>
         <li><a href="{% url 'adminpage-festival-calendar' %}"><i class="fas fa-star"></i> Minasa Festival Calendar</a></li>
-    </ul>
+    </ul> -->
     <div class="admin-actions">
         <div class="admin-user-info">
             <p><strong>{{ user.username }}</strong></p>

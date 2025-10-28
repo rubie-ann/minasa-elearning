@@ -353,13 +353,23 @@
         <h2>Admin Panel</h2>
     </div>
     <ul class="admin-nav">
+        <li><a href="{% url 'adminpage-admin-dashboard' %}"href="{% url 'adminpage-admin-dashboard' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+        <li><a href="{% url 'adminpage-user-management' %}"><i class="fas fa-users"></i> User Management</a></li>
+        <li><a href="{% url 'adminpage-content-manager' %}"><i class="fas fa-layer-group"></i> Content Manager</a></li>
+        <li><a href="{% url 'adminpage-category-manager' %}"><i class="fas fa-tags"></i> Categories</a></li>
+        <li><a href="{% url 'adminpage-minasa-products' %}"><i class="fas fa-shopping-bag"></i> Minasa Products</a></li>
+        <li><a href="{% url 'adminpage-activities' %}"><i class="fas fa-calendar"></i> Activities</a></li>
+        <li><a href="#" class="active"><i class="fas fa-star"></i> Events</a></li>
+        <!-- <li><a href="{% url 'home' %}"><i class="fas fa-home"></i> Back to Home</a></li> -->
+    </ul>
+    <!-- <ul class="admin-nav">
         <li><a href="{% url 'adminpage-admin-dashboard' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
         <li><a href="{% url 'adminpage-user-management' %}"><i class="fas fa-users"></i> User Management</a></li>
         <li><a href="{% url 'adminpage-content-manager' %}"><i class="fas fa-layer-group"></i> Content Manager</a></li>
         <li><a href="{% url 'adminpage-minasa-products' %}"><i class="fas fa-shopping-bag"></i> Minasa Products</a></li>
         <li><a href="{% url 'adminpage-activities' %}"><i class="fas fa-calendar"></i> Activities</a></li>
         <li><a href="#" class="active"><i class="fas fa-star"></i> Minasa Festival Calendar</a></li>
-    </ul>
+    </ul> -->
     <div class="admin-actions">
         <div class="admin-user-info">
             <p><strong>{{ user.username }}</strong></p>
@@ -420,7 +430,8 @@
                     data-event-date="{{ event.date|date:'Y-m-d' }}"
                     data-event-time="{{ event.time|time:'H:i' }}"
                     data-event-location="{{ event.location|default:'' }}"
-                    data-event-map="{{ event.map_link|default:'' }}">
+                    data-event-map="{{ event.map_link|default:'' }}"
+                    data-event-image="{% if event.image %}{{ event.image.url }}{% else %}{{ MEDIA_URL }}images/default-event.png{% endif %}">
 
                     <div class="card-header">
                         <div class="card-checkbox">
@@ -528,7 +539,8 @@
             </div>
             
             <div class="form-group">
-                <label for="eventImage">Event Image (Optional):</label>
+                <label for="eventImage">Event Image</label>
+                <img id="eventImagePreview" src="" alt="Event Image Preview" style="max-width: 30%; margin-bottom: 10px;">
                 <input type="file" id="eventImage" name="image" accept="image/*">
             </div>
             
@@ -602,9 +614,29 @@ function editEvent(eventId) {
     document.getElementById('eventLocation').value = card.getAttribute('data-event-location');
     document.getElementById('eventMapLink').value = card.getAttribute('data-event-map');
 
+    const fileInput = document.getElementById('eventImage');
+    fileInput.value = ''; // clears previous selection
+    
+    // Populate image preview
+    const imgPreview = document.querySelector('#eventImagePreview');
+    const imageUrl = card.getAttribute('data-event-image');
+    imgPreview.src = imageUrl || '/media/images/default-event.png';
+
     // Show modal
     document.getElementById('eventModal').style.display = 'block';
 }
+
+document.getElementById('eventImage').addEventListener('change', function(event) {
+    const preview = document.getElementById('eventImagePreview');
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+        }
+        reader.readAsDataURL(file);
+    }
+});
 
 
 function closeEventModal() {
