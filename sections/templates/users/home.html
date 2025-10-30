@@ -3,6 +3,140 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-<br><br>
-<h1>Welcome to Minasa E-Learning!</h1>
+
+{% load static %}
+
+<style>
+    .hero {
+        position: relative;
+        top: 50px;
+        z-index: 100;
+        height: 90vh;
+        background: url('{% static "images/fest2.jpg" %}') center/cover no-repeat;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        text-align: center;
+    }
+</style>
+
+<!-- HERO SECTION -->
+<section class="hero">
+    <div class="hero-content">
+        <h1>Minasa E-Learning</h1>
+        <p>Where stories, culture, and learning intertwine — experience the evolution of Minasa through knowledge and discovery.</p>
+    </div>
+</section>
+
+<!-- KNOWLEDGE -->
+<section class="feature-section">
+    <div class="feature">
+        <div class="feature-text">
+            <h2>Stories Worth Learning</h2>
+            <p>Dive into a collection of knowledge that unfolds the story behind Minasa — its beginnings, culture, and the heart that sustains it. Discover materials that inspire awareness and appreciation.</p>
+            <a href="{% url 'educationalsection' %}">Discover</a>
+        </div>
+        <div class="feature-img">
+            <img src='{% static "images/fest4.jpg" %}' alt="Knowledge and Learning">
+        </div>
+    </div>
+
+    <!-- ACTIVITIES -->
+    <div class="feature reverse">
+        <div class="feature-text">
+            <h2>Engage Through Play</h2>
+            <p>Challenge your knowledge and have fun while learning. Explore interactive experiences that keep curiosity alive and bring the Minasa story closer to you.</p>
+            <a href="{% url 'activities' %}">Get Started</a>
+        </div>
+        <div class="feature-img">
+            <img src='{% static "images/minasa-cookie2.jpg" %}' alt="Activities and Games">
+        </div>
+    </div>
+
+    <!-- ABOUT -->
+    <div class="feature reverse">
+        <div class="feature-text">
+            <h2>The Heart Behind It All</h2>
+            <p>Learn about the story and purpose that inspired the creation of this system — connecting people, culture, and knowledge in one meaningful space.</p>
+            <a href="{% url 'about' %}">Learn More</a>
+        </div>
+        <div class="feature-img">
+            <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1000&q=80" alt="About Minasa System">
+        </div>
+    </div>
+</section>
+
+<section class="community-showcase">
+    <div class="community-header">
+        <h2>Connect, Explore, and Grow</h2>
+        <p>Be part of Minasa’s continuing story — where discovery meets culture, and community sparks learning.</p>
+    </div>
+
+    <div class="community-cards">
+        <!-- Find Minasa Products -->
+        <div class="community-item">
+            <img src='{% static "images/minasa-prod.jpg" %}' alt="Find Minasa Products">
+            <div class="community-info">
+                <h3>Find Minasa Near You</h3>
+                <p>Locate stores and sellers offering Minasa products — fresh, local, and full of tradition.</p>
+                <a href="{% url 'find_minasa' %}">Find Now</a>
+            </div>
+        </div>
+
+        <!-- Festival Calendar -->
+        <div class="community-item">
+            <img src='{% static "images/fest3.jpg" %}' alt="Festival Calendar">
+            <div class="community-info">
+                <h3>Celebrate with Us</h3>
+                <p>Check the calendar of Minasa Festival events, and count down to days of joy and culture.</p>
+                <a href="{% url 'festival_calendar' %}">View Calendar</a>
+            </div>
+        </div>
+
+        <!-- Growth Timeline -->
+        <div class="community-item">
+            <img src='{% static "images/arrowroot-plant.png" %}' alt="Growth Timeline">
+            <div class="community-info">
+                <h3>See How We’ve Grown</h3>
+                <p>Follow Minasa’s journey from its humble beginnings to its modern-day significance in our culture.</p>
+                <a href="{% url 'growth_timeline' %}">View Timeline</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<!-- <footer class="footer">
+    <div class="footer-container">
+        <div class="footer-logo">
+            <h3>Minasa</h3>
+            <p>Discover, learn, and celebrate the stories that root Minasa in the heart of tradition and growth.</p>
+        </div>
+        <div class="footer-links">
+            <a href="{% url 'home' %}">Home</a>
+            <a href="{% url 'educationalsection' %}">Educational Section</a>
+            <a href="{% url 'activities' %}">Activities</a>
+            <a href="{% url 'find_minasa' %}">Find Minasa Products</a>
+            <a href="{% url 'festival_calendar' %}">Festival Calendar</a>
+            <a href="{% url 'growth_timeline' %}">Growth Timeline</a>
+            <a href="{% url 'about' %}">About</a>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2025 Minasa. All rights reserved.</p>
+    </div>
+</footer> -->
+
+<!-- FOOTER -->
+<footer class="footer-links" style="color: #fff;">
+    <p style="font-size: 1.1em;">&copy; {{ now|date:"Y" }} Minasa E-Learning. All Rights Reserved.</p>
+    <p> <a href="{% url 'home' %}">Home</a> |  <a href="{% url 'educationalsection' %}">Educational Section</a>  |  <a href="{% url 'activities' %}">Activities</a> |
+        <a href="{% url 'find_minasa' %}">Find Minasa Products</a> |
+        <a href="{% url 'festival_calendar' %}">Festival Calendar</a> |
+        <a href="{% url 'growth_timeline' %}">Growth Timeline</a> |
+        <a href="{% url 'about' %}">About</a>
+    </p>
+</footer>
+
 {% endblock %}

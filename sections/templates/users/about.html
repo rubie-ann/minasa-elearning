@@ -1,8 +1,52 @@
 {% extends "users/userbase.html" %}
-
-{% block title %}Home{% endblock %}
+{% load static %}
+{% block title %}About{% endblock %}
 
 {% block content %}
-<br><br>
-<h1>Welcome to Minasa E-Learning!</h1>
+
+<!-- HERO -->
+<section class="about-hero">
+    <div class="about-hero-content">
+        <h1>About Minasa E-Learning</h1>
+        <p>Preserving tradition through technology — connecting generations through the story of Minasa and the culture that shapes it.</p>
+    </div>
+</section>
+
+<!-- ABOUT THE SYSTEM -->
+<section class="about-section">
+    <div class="about-text">
+        <h2>Empowering Learning, Enriching Heritage</h2>
+        <p><strong>Minasa E-Learning</strong> is an interactive digital platform designed to promote awareness, education, and appreciation for Minasa — the cherished arrowroot-based delicacy rooted deeply in Bustos, Bulacan’s history and identity.</p>
+        <p>Through engaging lessons, cultural insights, and activities, this system bridges the gap between tradition and innovation. It invites users to explore how Minasa became not only a product but also a reflection of community resilience and creativity.</p>
+    </div>
+    <img src='{% static "images/fest3.jpg" %}' alt="Minasa Learning">
+</section>
+
+<!-- ABOUT MINASA -->
+<section class="about-section">
+    <img src='{% static "images/minasa-prod.jpg" %}' alt="Arrowroot Minasa">
+    <div class="about-text">
+        <h2>The Story Behind the Sweet</h2>
+        <p>Minasa, crafted from arrowroot flour, is more than just a local delicacy — it is a living tradition passed down through generations. Every bite carries the essence of Bustos’ culture: patience, craftsmanship, and a deep sense of community.</p>
+        <p>By showcasing its history and process, Minasa E-Learning aims to keep the art of making Minasa alive while introducing it to new learners in a modern, interactive way.</p>
+    </div>
+</section>
+
+<!-- MISSION -->
+<section class="mission-section">
+    <h2>Our Mission</h2>
+    <p>To nurture cultural appreciation and digital learning by combining local heritage with interactive education — inspiring future generations to value, share, and sustain the legacy of Minasa.</p>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer-links" style="color: #fff;">
+    <p style="font-size: 1.1em;">&copy; {{ now|date:"Y" }} Minasa E-Learning. All Rights Reserved.</p>
+    <p> <a href="{% url 'home' %}">Home</a> |  <a href="{% url 'educationalsection' %}">Educational Section</a>  |  <a href="{% url 'activities' %}">Activities</a> |
+        <a href="{% url 'find_minasa' %}">Find Minasa Products</a> |
+        <a href="{% url 'festival_calendar' %}">Festival Calendar</a> |
+        <a href="{% url 'growth_timeline' %}">Growth Timeline</a> |
+        <a href="{% url 'about' %}">About</a>
+    </p>
+</footer>
+
 {% endblock %}
