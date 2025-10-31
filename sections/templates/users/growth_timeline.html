@@ -1,10 +1,173 @@
 {% extends "users/userbase.html" %}
 {% load static %}
-
 {% block title %}Growth Timeline{% endblock %}
 
 {% block content %}
-<br><br><br>
-<h1>Interactive Growth Timeline</h1>
-<p>This page will soon show the Arrowroot plant's growth process — from planting to harvest — in an interactive format.</p>
+<style>
+.timeline-page {
+  padding: 80px 6%;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.timeline-hero {
+  text-align: center;
+  margin-bottom: 40px;
+}
+.timeline-hero h1 { color: #5e2217; }
+.timeline-hero p { color: #444; max-width: 750px; margin: 0 auto; }
+
+.timeline-wrapper {
+  position: relative;
+  padding: 40px 0 60px;
+}
+
+.timeline-track {
+  height: 6px;
+  background: #eee;
+  border-radius: 6px;
+  margin: 40px 0;
+  position: relative;
+}
+
+.timeline-progress {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg,#b8813d,#fbbf24);
+  border-radius: 6px;
+  transition: width 0.3s ease;
+}
+
+.timeline-nodes {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: -18px;
+}
+.timeline-node {
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border: 3px solid #b8813d;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.3s;
+}
+.timeline-node.active {
+  transform: scale(1.3);
+  border-color: #f97316;
+  box-shadow: 0 0 10px rgba(249,115,22,0.3);
+}
+
+.timeline-detail {
+  margin-top: 40px;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 6px 25px rgba(0,0,0,0.08);
+  padding: 25px;
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+.timeline-detail img {
+  width: 260px;
+  height: 180px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+.detail-body h3 { color: #5e2217; margin-top: 0; }
+.detail-body .month-range { color: #b8813d; font-weight: 600; margin-bottom: 8px; }
+.detail-body p { color: #444; line-height: 1.6; text-align: justify; }
+
+@media (max-width: 850px) {
+  .timeline-detail { flex-direction: column; text-align: center; }
+  .timeline-detail img { width: 100%; height: auto; }
+}
+</style>
+
+<div class="timeline-page">
+  <div class="timeline-hero">
+    <h1>From Root to Flourish</h1>
+    <p>Explore the growth cycle of the Minasa (arrowroot) — from planting to harvest. Click through each phase to discover what happens and how farmers care for this resilient crop.</p>
+  </div>
+
+  <div class="timeline-wrapper">
+    <div class="timeline-track">
+      <div class="timeline-progress" id="timelineProgress"></div>
+    </div>
+
+    <div class="timeline-nodes" id="timelineNodes">
+      <div class="timeline-node active" data-index="0"></div>
+      <div class="timeline-node" data-index="1"></div>
+      <div class="timeline-node" data-index="2"></div>
+      <div class="timeline-node" data-index="3"></div>
+    </div>
+
+    <div id="timelineDetailContainer" class="timeline-detail">
+      <img id="detailImage" src="{% static 'images/arrowroot1.jpg' %}" alt="Arrowroot Planting">
+      <div class="detail-body">
+        <h3 id="detailTitle">Planting & Early Growth</h3>
+        <p class="month-range" id="detailMonth">1–2 Months</p>
+        <p id="detailDesc">
+          The journey begins as arrowroot rhizomes are planted in well-prepared, moist soil. Healthy, disease-free planting materials ensure good establishment.
+          <br><br>
+          <strong>Do:</strong> Keep the soil moist and shaded to help new shoots develop strong roots.  
+          <strong>Don’t:</strong> Plant during heavy rains — excess water can cause rotting or stunted growth.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const data = [
+    {
+      month: "1–2 Months",
+      title: "Planting & Early Growth",
+      image: "{% static 'images/arrowroot1.jpg' %}",
+      desc: "The journey begins as arrowroot rhizomes are planted in well-prepared, moist soil. Healthy, disease-free planting materials ensure good establishment.\n\nDo: Keep the soil moist and shaded to help new shoots develop strong roots.\nDon’t: Plant during heavy rains — excess water can cause rotting or stunted growth."
+    },
+    {
+      month: "3–4 Months",
+      title: "Leaf Expansion & Stem Growth",
+      image: "{% static 'images/arrowroot2.jpg' %}",
+      desc: "The plants develop more leaves and stems, drawing nutrients and sunlight to strengthen growth.\n\nDo: Weed regularly and apply organic fertilizer.\nDon’t: Disturb roots when cultivating soil, as it may harm plant development."
+    },
+    {
+      month: "5–7 Months",
+      title: "Rhizome Development",
+      image: "{% static 'images/arrowroot3.jpg' %}",
+      desc: "This is the crucial stage where arrowroot rhizomes grow and store starch underground.\n\nDo: Water regularly and use compost to maintain soil moisture.\nDon’t: Apply chemical fertilizers that can affect starch quality."
+    },
+    {
+      month: "8–10 Months",
+      title: "Harvest & Soil Recovery",
+      image: "{% static 'images/arrowroot4.jpg' %}",
+      desc: "Leaves begin to yellow — a sign that it’s time to harvest. Careful digging avoids breaking rhizomes.\n\nDo: Let the soil rest after harvest and plant legumes to restore nutrients.\nDon’t: Replant arrowroot immediately after harvest."
+    }
+  ];
+
+  const nodes = document.querySelectorAll(".timeline-node");
+  const progress = document.getElementById("timelineProgress");
+  const img = document.getElementById("detailImage");
+  const title = document.getElementById("detailTitle");
+  const month = document.getElementById("detailMonth");
+  const desc = document.getElementById("detailDesc");
+
+  function setActive(i) {
+    nodes.forEach(n => n.classList.remove("active"));
+    nodes[i].classList.add("active");
+    progress.style.width = `${(i / (nodes.length - 1)) * 100}%`;
+    const d = data[i];
+    img.src = d.image;
+    title.textContent = d.title;
+    month.textContent = d.month;
+    desc.innerHTML = d.desc.replace(/\n/g, "<br>");
+  }
+
+  nodes.forEach((n, i) => n.addEventListener("click", () => setActive(i)));
+});
+</script>
+
 {% endblock %}

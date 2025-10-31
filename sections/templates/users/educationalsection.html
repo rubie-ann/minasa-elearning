@@ -85,7 +85,7 @@
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
         referrerpolicy="strict-origin-when-cross-origin" 
         allowfullscreen>
-    </ifr>
+    </iframe>
 </div>
 
 
@@ -154,6 +154,7 @@ document.addEventListener('DOMContentLoaded', function () {
     window.onclick = (e) => { if (e.target === modal) modal.style.display = "none"; };
 
 const searchInput = document.querySelector('.searchcontent');
+const videoSections = document.querySelectorAll('.video-section');
 
 searchInput.addEventListener('keyup', function() {
     const query = this.value.toLowerCase();
@@ -186,6 +187,12 @@ searchInput.addEventListener('keyup', function() {
 
         titleDiv.style.display = hasVisibleSection ? 'block' : 'none';
     });
+
+     if (query !== '') {
+        videoSections.forEach(v => v.style.display = 'none');
+    } else {
+        videoSections.forEach(v => v.style.display = 'block');
+    }
 })});
 </script>
 

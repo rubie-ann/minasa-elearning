@@ -4,6 +4,7 @@ from django.utils.html import format_html
 from .models import FestivalEvent, Category, Quiz, Question, Answer, MinigameLevel
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
+from .models import GrowthStage
 from django import forms
 
 @admin.register(Section)
@@ -136,6 +137,13 @@ class MinigameLevelAdmin(admin.ModelAdmin):
         return "-"
     image4_preview.short_description = "Image 4"
 
+@admin.register(GrowthStage)
+class GrowthStageAdmin(admin.ModelAdmin):
+    list_display = ('date', 'title')
+    ordering = ('date',)
+
 # Unregister the default User admin and register our custom one
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
+
+

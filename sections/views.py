@@ -12,7 +12,7 @@ from .models import FestivalEvent
 from datetime import date, datetime
 from django.contrib.auth.models import User
 from django.http import JsonResponse
-# from django.contrib.auth.views import LogoutView
+from .models import GrowthStage
 from django.contrib.auth import logout
 
 
@@ -1000,3 +1000,19 @@ def get_minigame_level_data(request, level_id):
         return JsonResponse(data)
     except MinigameLevel.DoesNotExist:
         return JsonResponse({'error': 'Level not found'}, status=404)
+
+def growth_timeline(request):
+    events = list(GrowthStage.objects.all().order_by('date', 'order'))
+    # For slider bounds
+    if events:
+        min_date = events[0].date
+        max_date = events[-1].date
+    else:
+        min_date = max_date = date.today()
+
+    context = {
+        'timeline_events': events,
+        'min_date': min_date.isoformat(),
+        'max_date': max_date.isoformat()
+    }
+    return render(request, 'users/growth_timeline.html', context)

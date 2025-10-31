@@ -217,3 +217,16 @@ class MinigameLevel(models.Model):
 
     def __str__(self):
         return f"Level {self.id}: {self.answer}"
+    
+class GrowthStage(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    date = models.DateField()
+    image = models.ImageField(upload_to='growth_timeline/', blank=True, null=True)
+    order = models.PositiveIntegerField(blank=True, null=True, help_text="Optional manual ordering")
+
+    class Meta:
+        ordering = ['date', 'order']
+
+    def __str__(self):
+        return f"{self.date} - {self.title}"
