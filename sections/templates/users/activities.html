@@ -316,6 +316,17 @@
         color: #888;
         font-size: 1.2rem;
     }
+
+       @keyframes shake {
+       0%, 100% { transform: translateX(0); }
+       10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+       20%, 40%, 60%, 80% { transform: translateX(5px); }
+   }
+
+   .answer-box:hover {
+       background: #f8f9fa !important;
+       transform: scale(1.05);
+   }
 </style>
 
 <div class="quiz-page">
@@ -435,9 +446,9 @@
                 <div id="minigameContent"></div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-submit" id="submitMinigameBtn" style="display: none;">
-                    Submit Answer
-                </button>
+                <button type="button" class="btn-submit" id="submitMinigameBtn" style="display: none;" onclick="checkMinigameAnswer()">
+       Check Answer
+   </button>
             </div>
         </div>
     </div>
@@ -590,78 +601,203 @@ function startMinigame(levelId) {
 }
 
 function displayMinigame(levelData) {
-    currentMinigameAnswer = levelData.answer;
+    currentMinigameAnswer = levelData.answer.toLowerCase();
     const minigameContent = document.getElementById('minigameContent');
-    let html = '<h4>Minigame Level ' + levelData.id + '</h4>';
-    html += '<p class="quiz-description-text">Look at the images and guess what they represent!</p>';
-    html += '<hr>';
+    
+    // Create letter pool (scrambled letters including correct answer + extras)
+    const answerLetters = currentMinigameAnswer.toUpperCase().replace(/\s/g, '').split('');
+    const extraLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+    const shuffleArray = (array) => {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    };
+    
+    // Add extra random letters
+    const numExtras = Math.max(4, 12 - answerLetters.length);
+    for (let i = 0; i < numExtras; i++) {
+        extraLetters.sort(() => Math.random() - 0.5);
+        answerLetters.push(extraLetters[i]);
+    }
+    
+    const letterPool = shuffleArray([...answerLetters]);
+    
+    let html = '<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 15px; color: white;">';
+    html += '<h4 style="text-align: center; margin-bottom: 5px; color: white;">Level ' + levelData.id + '</h4>';
+    html += '<p style="text-align: center; color: #fff; opacity: 0.9; font-size: 0.95rem;">4 Pics 1 Word</p>';
+    html += '</div>';
 
-    html += '<div class="question-container">';
-    html += '<div class="question-header">What do these images have in common?</div>';
-    html += '<div class="row">';
-
-    // Display images
+    // Images Grid (2x2)
+    html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; background: #f8f9fa; padding: 15px; border-radius: 10px;">';
+    
     if (levelData.image1_url) {
-        html += '<div class="col-md-3 mb-3"><img src="' + levelData.image1_url + '" class="img-fluid rounded" alt="Image 1"></div>';
+        html += '<div style="position: relative; padding-top: 100%; overflow: hidden; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">';
+        html += '<img src="' + levelData.image1_url + '" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;" alt="Image 1">';
+        html += '</div>';
     }
     if (levelData.image2_url) {
-        html += '<div class="col-md-3 mb-3"><img src="' + levelData.image2_url + '" class="img-fluid rounded" alt="Image 2"></div>';
+        html += '<div style="position: relative; padding-top: 100%; overflow: hidden; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">';
+        html += '<img src="' + levelData.image2_url + '" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;" alt="Image 2">';
+        html += '</div>';
     }
     if (levelData.image3_url) {
-        html += '<div class="col-md-3 mb-3"><img src="' + levelData.image3_url + '" class="img-fluid rounded" alt="Image 3"></div>';
+        html += '<div style="position: relative; padding-top: 100%; overflow: hidden; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">';
+        html += '<img src="' + levelData.image3_url + '" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;" alt="Image 3">';
+        html += '</div>';
     }
     if (levelData.image4_url) {
-        html += '<div class="col-md-3 mb-3"><img src="' + levelData.image4_url + '" class="img-fluid rounded" alt="Image 4"></div>';
+        html += '<div style="position: relative; padding-top: 100%; overflow: hidden; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">';
+        html += '<img src="' + levelData.image4_url + '" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;" alt="Image 4">';
+        html += '</div>';
     }
+    
+    html += '</div>';
 
+    // Answer boxes
+    const answerLength = currentMinigameAnswer.replace(/\s/g, '').length;
+    html += '<div style="display: flex; justify-content: center; gap: 8px; margin: 25px 0; flex-wrap: wrap;" id="answerBoxes">';
+    for (let i = 0; i < answerLength; i++) {
+        html += '<div class="answer-box" data-index="' + i + '" style="width: 45px; height: 55px; background: white; border: 3px solid #667eea; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; color: #333; cursor: pointer; transition: all 0.2s;"></div>';
+    }
     html += '</div>';
-    html += '<div class="mt-4">';
-    html += '<label for="minigame_answer" class="form-label">Your Answer:</label>';
-    html += '<input type="text" class="form-control" id="minigame_answer" placeholder="Type your answer here...">';
+
+    // Letter tiles
+    html += '<div style="display: flex; justify-content: center; gap: 6px; margin: 25px 0; flex-wrap: wrap;" id="letterPool">';
+    letterPool.forEach((letter, index) => {
+        html += '<button class="letter-tile" data-letter="' + letter + '" data-tile-index="' + index + '" style="width: 45px; height: 55px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 1.5rem; font-weight: bold; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" onclick="selectLetter(this)">' + letter + '</button>';
+    });
     html += '</div>';
+
+    // Clear button
+    html += '<div style="text-align: center; margin-top: 20px;">';
+    html += '<button onclick="clearAnswer()" style="background: #ff6b6b; color: white; border: none; padding: 12px 30px; border-radius: 25px; font-weight: bold; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">Clear</button>';
     html += '</div>';
 
     minigameContent.innerHTML = html;
     document.getElementById('submitMinigameBtn').style.display = 'block';
+    
+    // Add hover effects
+    document.querySelectorAll('.letter-tile').forEach(tile => {
+        tile.addEventListener('mouseenter', function() {
+            if (!this.disabled) {
+                this.style.transform = 'translateY(-3px)';
+                this.style.boxShadow = '0 6px 12px rgba(0,0,0,0.15)';
+            }
+        });
+        tile.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+        });
+    });
 }
 
-document.getElementById('submitMinigameBtn').addEventListener('click', function() {
-    submitMinigameAnswer(currentMinigameAnswer);
-});
+function clearAnswer() {
+    const answerBoxes = document.querySelectorAll('.answer-box');
+    answerBoxes.forEach(box => {
+        const tileIndex = box.getAttribute('data-tile-index');
+        if (tileIndex) {
+            const tile = document.querySelector(`.letter-tile[data-tile-index="${tileIndex}"]`);
+            if (tile) {
+                tile.disabled = false;
+                tile.style.opacity = '1';
+                tile.style.cursor = 'pointer';
+            }
+        }
+        box.textContent = '';
+        box.removeAttribute('data-tile-index');
+    });
+}
 
-function submitMinigameAnswer(correctAnswer) {
-    const userAnswer = document.getElementById('minigame_answer').value.trim().toLowerCase();
-    const minigameContent = document.getElementById('minigameContent');
-
-    if (!userAnswer) {
-        alert('Please enter an answer.');
-        return;
+function checkMinigameAnswer() {
+    const answerBoxes = document.querySelectorAll('.answer-box');
+    const userAnswer = Array.from(answerBoxes).map(box => box.textContent).join('').toLowerCase();
+    
+    if (userAnswer === currentMinigameAnswer.replace(/\s/g, '')) {
+        // Correct answer animation
+        answerBoxes.forEach((box, index) => {
+            setTimeout(() => {
+                box.style.background = 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)';
+                box.style.borderColor = '#11998e';
+                box.style.color = 'white';
+                box.style.transform = 'scale(1.1)';
+                setTimeout(() => {
+                    box.style.transform = 'scale(1)';
+                }, 200);
+            }, index * 100);
+        });
+        
+        setTimeout(() => {
+            showMinigameResult(true);
+        }, 1000);
+    } else {
+        // Wrong answer animation
+        answerBoxes.forEach(box => {
+            box.style.animation = 'shake 0.5s';
+        });
+        setTimeout(() => {
+            answerBoxes.forEach(box => {
+                box.style.animation = '';
+            });
+            clearAnswer();
+        }, 500);
     }
+}
 
-    const isCorrect = userAnswer === correctAnswer.toLowerCase();
+function showMinigameResult(isCorrect) {
+    const minigameContent = document.getElementById('minigameContent');
     let feedbackClass = isCorrect ? 'alert-success' : 'alert-danger';
-    let feedbackMessage = isCorrect ? 'Correct! Well done!' : 'Incorrect. Try again!';
+    let feedbackMessage = isCorrect ? '🎉 Correct! Well done!' : '❌ Incorrect. Try again!';
 
     let html = '<div class="results-header">' +
-        '<h4>Minigame Result</h4>' +
+        '<h4>Result</h4>' +
         '<div class="alert ' + feedbackClass + '" style="border-radius: 15px; margin-top: 20px;">' +
             '<strong>' + feedbackMessage + '</strong>' +
         '</div>' +
     '</div>' +
-    '<hr>' +
-    '<div class="review-section">' +
-        '<div class="answer-review ' + (isCorrect ? 'correct' : 'incorrect') + '">' +
-            '<div class="review-detail"><strong>Your answer:</strong> ' + userAnswer + '</div>' +
-            '<div class="review-detail"><strong>Correct answer:</strong> ' + correctAnswer + '</div>' +
-            '<span class="result-badge ' + (isCorrect ? 'correct' : 'incorrect') + '">' +
-                (isCorrect ? '✓ Correct' : '✗ Incorrect') +
-            '</span>' +
-        '</div>' +
+    '<div style="text-align: center; margin-top: 20px;">' +
+        '<div style="font-size: 3rem; color: #667eea; font-weight: bold; text-transform: uppercase; letter-spacing: 3px;">' + currentMinigameAnswer + '</div>' +
     '</div>';
 
     minigameContent.innerHTML = html;
     document.getElementById('submitMinigameBtn').style.display = 'none';
 }
+
+
+function selectLetter(tile) {
+    if (tile.disabled) return;
+    
+    const letter = tile.getAttribute('data-letter');
+    const tileIndex = tile.getAttribute('data-tile-index');
+    const answerBoxes = document.querySelectorAll('.answer-box');
+    
+    // Find first empty box
+    for (let box of answerBoxes) {
+        if (!box.textContent) {
+            box.textContent = letter;
+            box.setAttribute('data-tile-index', tileIndex);
+            tile.disabled = true;
+            tile.style.opacity = '0.3';
+            tile.style.cursor = 'not-allowed';
+            break;
+        }
+    }
+    
+    // Check if all boxes are filled
+    const allFilled = Array.from(answerBoxes).every(box => box.textContent);
+    if (allFilled) {
+        setTimeout(() => {
+            checkMinigameAnswer();
+        }, 300);
+    }
+}
+
+document.getElementById('submitMinigameBtn').addEventListener('click', function() {
+    checkMinigameAnswer();
+});
+
+
 </script>
 {% endverbatim %}
 
