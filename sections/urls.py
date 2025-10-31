@@ -33,6 +33,7 @@ urlpatterns = [
     path('quiz/<int:quiz_id>/edit/', views.quiz_edit, name='quiz-edit'),
     path('quiz/<int:quiz_id>/delete/', views.quiz_delete, name='quiz-delete'),
     path('api/quiz/<int:quiz_id>/', views.quiz_api, name='quiz-api'),
+    path('get_minigame_level_data/<int:level_id>/', views.get_minigame_level_data, name='get_minigame_level_data'),
 
 ]
 

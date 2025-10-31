@@ -1,0 +1,409 @@
+{% extends "users/base.html" %}
+{% load static %}
+
+{% block title %}Admin Minigame{% endblock %}
+
+{% block content %}
+<style>
+    /* Override body and container for admin pages */
+    body {
+        background-color: #f4f6f9 !important;
+        margin: 0;
+        padding: 0;
+    }
+
+    body .container {
+        background-color: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+    }
+</style>
+<link rel="stylesheet" href="{% static 'css/adminside.css' %}">
+
+<div class="admin-sidebar">
+    <div class="sidebar-header">
+        <div class="logo-container">
+            <img src="/media/images/logo.png" alt="Minasa Festival Logo" style="max-width: 80px; height: auto;" />
+        </div>
+        <h2>Admin Panel</h2>
+    </div>
+    <ul class="admin-nav">
+        <li><a href="{% url 'adminpage-admin-dashboard' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+        <li><a href="{% url 'adminpage-user-management' %}"><i class="fas fa-users"></i> User Management</a></li>
+        <li><a href="{% url 'adminpage-content-manager' %}"><i class="fas fa-layer-group"></i> Content Manager</a></li>
+        <li><a href="{% url 'adminpage-category-manager' %}"><i class="fas fa-tags"></i> Categories</a></li>
+        <li><a href="{% url 'adminpage-minasa-products' %}"><i class="fas fa-shopping-bag"></i> Minasa Products</a></li>
+        <li><a href="{% url 'adminpage-activities' %}"><i class="fas fa-calendar"></i> Activities</a></li>
+        <li><a href="{% url 'adminpage-festival-calendar' %}"><i class="fas fa-star"></i> Events</a></li>
+        <li><a href="{% url 'adminpage-minigame' %}" class="active"><i class="fas fa-gamepad"></i> Minigame</a></li>
+        <!-- <li><a href="{% url 'home' %}"><i class="fas fa-home"></i> Back to Home</a></li> -->
+    </ul>
+    <div class="admin-actions">
+        <div class="admin-user-info">
+            <p><strong>{{ user.username }}</strong></p>
+            <p>{{ user.email|default:"No email" }}</p>
+        </div>
+        <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </form>
+    </div>
+</div>
+
+<div class="admin-content">
+    <div class="admin-header">
+        <h1>Minigame Management</h1>
+        <p>Manage minigames for the Minasa E-Learning platform.</p>
+    </div>
+
+    <div class="admin-panels">
+        <div class="admin-panel">
+            <div class="panel-header">
+                <h3><i class="fas fa-plus-circle"></i> Add New Level</h3>
+            </div>
+            <div class="panel-content">
+                <p>Add a new level to the "4 Pics 1 Word" minigame. Each level requires 4 images and 1 correct answer.</p>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addLevelModal">
+                    <i class="fas fa-plus"></i> Add New Level
+                </button>
+            </div>
+        </div>
+
+        <div class="admin-panel">
+            <div class="panel-header">
+                <h3><i class="fas fa-list"></i> Existing Levels ({{ total_levels }})</h3>
+            </div>
+            <div class="panel-content">
+                {% if levels %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Answer</th>
+                                    <th>Images</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for level in levels %}
+                                <tr>
+                                    <td>{{ level.id }}</td>
+                                    <td><strong>{{ level.answer }}</strong></td>
+                                    <td>
+                                        <div class="d-flex gap-1">
+                                            {% if level.image1 %}
+                                                <img src="{{ level.image1.url }}" width="40" height="40" class="rounded" style="object-fit: cover;" title="Image 1">
+                                            {% else %}
+                                                <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">-</div>
+                                            {% endif %}
+                                            {% if level.image2 %}
+                                                <img src="{{ level.image2.url }}" width="40" height="40" class="rounded" style="object-fit: cover;" title="Image 2">
+                                            {% else %}
+                                                <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">-</div>
+                                            {% endif %}
+                                            {% if level.image3 %}
+                                                <img src="{{ level.image3.url }}" width="40" height="40" class="rounded" style="object-fit: cover;" title="Image 3">
+                                            {% else %}
+                                                <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">-</div>
+                                            {% endif %}
+                                            {% if level.image4 %}
+                                                <img src="{{ level.image4.url }}" width="40" height="40" class="rounded" style="object-fit: cover;" title="Image 4">
+                                            {% else %}
+                                                <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">-</div>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>{{ level.created_at|date:"M d, Y H:i" }}</td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-warning me-1" onclick="editLevel({{ level.id }})">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-danger" onclick="deleteLevel({{ level.id }})">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>No levels found.</strong> Start by adding your first minigame level using the button above.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="admin-panel">
+            <div class="panel-header">
+                <h3><i class="fas fa-gamepad"></i> Minigame Settings</h3>
+            </div>
+            <div class="panel-content">
+                <p>Additional minigame features to be implemented:</p>
+                <ul>
+                    <li>Configure game settings</li>
+                    <li>Manage game scores and leaderboards</li>
+                    <li>Monitor player activity</li>
+                </ul>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Coming Soon:</strong> Additional minigame functionality will be added in future updates.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Level Modal -->
+<div class="modal fade" id="addLevelModal" tabindex="-1" aria-labelledby="addLevelModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addLevelModalLabel">Add New Minigame Level</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" enctype="multipart/form-data" id="addLevelForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="image-grid">
+                        <div>
+                            <label for="id_image1">Image 1:</label>
+                            <input type="file" name="image1" accept="image/*" id="id_image1" required>
+                        </div>
+                        <div>
+                            <label for="id_image2">Image 2:</label>
+                            <input type="file" name="image2" accept="image/*" id="id_image2" required>
+                        </div>
+                        <div>
+                            <label for="id_image3">Image 3:</label>
+                            <input type="file" name="image3" accept="image/*" id="id_image3" required>
+                        </div>
+                        <div>
+                            <label for="id_image4">Image 4:</label>
+                            <input type="file" name="image4" accept="image/*" id="id_image4" required>
+                        </div>
+                    </div>
+
+                    <div class="answer-section">
+                        <label for="id_answer">Answer:</label>
+                        <input type="text" name="answer" id="id_answer" placeholder="Enter the correct answer" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Level</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Level Modal -->
+<div class="modal fade" id="editLevelModal" tabindex="-1" aria-labelledby="editLevelModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editLevelModalLabel">Edit Minigame Level</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" enctype="multipart/form-data" id="editLevelForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div id="currentImages"></div>
+                    <div class="image-grid">
+                        <div>
+                            <label for="edit_id_image1">Image 1:</label>
+                            <input type="file" name="image1" accept="image/*" id="edit_id_image1">
+                        </div>
+                        <div>
+                            <label for="edit_id_image2">Image 2:</label>
+                            <input type="file" name="image2" accept="image/*" id="edit_id_image2">
+                        </div>
+                        <div>
+                            <label for="edit_id_image3">Image 3:</label>
+                            <input type="file" name="image3" accept="image/*" id="edit_id_image3">
+                        </div>
+                        <div>
+                            <label for="edit_id_image4">Image 4:</label>
+                            <input type="file" name="image4" accept="image/*" id="edit_id_image4">
+                        </div>
+                    </div>
+
+                    <div class="answer-section">
+                        <label for="edit_id_answer">Answer:</label>
+                        <input type="text" name="answer" id="edit_id_answer" placeholder="Enter the correct answer" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Level</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .modal .image-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .modal .image-grid div {
+        display: flex;
+        gap: 20px;
+        flex-direction: column;
+    }
+
+    .modal .image-grid label {
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .modal .image-grid input[type="file"] {
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background-color: #fff;
+    }
+
+    .modal .answer-section {
+        margin-top: 20px;
+    }
+
+    .modal .answer-section label {
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    .modal .answer-section input[type="text"] {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 16px;
+        background-color: #fff;
+    }
+</style>
+
+<script>
+    // Handle form submission via AJAX to avoid page reload
+    document.getElementById('addLevelForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+
+        fetch('{% url "add_minigame_level" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addLevelModal'));
+                modal.hide();
+
+                // Show success message
+                alert('Level added successfully!');
+
+                // Reload page to show new level
+                location.reload();
+            } else {
+                alert('Error: ' + (data.error || 'Unknown error occurred'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while adding the level.');
+        });
+    });
+
+    // Edit level function
+    function editLevel(levelId) {
+        // Fetch level data and populate modal
+        fetch('/adminpage/get-minigame-level-data/' + levelId + '/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert('Error: ' + data.error);
+                return;
+            }
+
+            // Populate the edit modal with data
+            document.getElementById('editLevelModalLabel').textContent = 'Edit Minigame Level';
+            document.getElementById('editLevelForm').action = '/adminpage/edit-minigame-level/' + levelId + '/';
+            document.getElementById('editLevelForm').method = 'POST';
+
+            // Set answer
+            document.getElementById('edit_id_answer').value = data.answer;
+
+            // Clear existing images (since we can't pre-fill file inputs for security reasons)
+            document.getElementById('edit_id_image1').value = '';
+            document.getElementById('edit_id_image2').value = '';
+            document.getElementById('edit_id_image3').value = '';
+            document.getElementById('edit_id_image4').value = '';
+
+            // Show current images if they exist
+            const currentImagesDiv = document.getElementById('currentImages');
+            currentImagesDiv.innerHTML = '';
+            if (data.image1_url || data.image2_url || data.image3_url || data.image4_url) {
+                currentImagesDiv.innerHTML = '<h6>Current Images:</h6><div class="d-flex gap-5 mb-3">';
+                if (data.image1_url) currentImagesDiv.innerHTML += '<img src="' + data.image1_url + '" width="60" height="60" class="rounded" style="object-fit: cover;" title="Current Image 1">';
+                if (data.image2_url) currentImagesDiv.innerHTML += '<img src="' + data.image2_url + '" width="60" height="60" class="rounded" style="object-fit: cover;" title="Current Image 2">';
+                if (data.image3_url) currentImagesDiv.innerHTML += '<img src="' + data.image3_url + '" width="60" height="60" class="rounded" style="object-fit: cover;" title="Current Image 3">';
+                if (data.image4_url) currentImagesDiv.innerHTML += '<img src="' + data.image4_url + '" width="60" height="60" class="rounded" style="object-fit: cover;" title="Current Image 4">';
+                currentImagesDiv.innerHTML += '</div><small class="text-muted">Upload new images to replace current ones (optional)</small>';
+            }
+
+            // Show the modal
+            const modal = new bootstrap.Modal(document.getElementById('editLevelModal'));
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while loading level data.');
+        });
+    }
+
+    // Delete level function
+    function deleteLevel(levelId) {
+        if (confirm('Are you sure you want to delete this level? This action cannot be undone.')) {
+            fetch('/adminpage/delete-minigame-level/' + levelId + '/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Level deleted successfully!');
+                    location.reload();
+                } else {
+                    alert('Error: ' + (data.error || 'Unknown error occurred'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while deleting the level.');
+            });
+        }
+    }
+</script>
+
+{% endblock %}

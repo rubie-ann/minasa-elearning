@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm
-from .models import Section, Category, Quiz, Question, Answer, MinasaProduct
+from .models import Section, Category, Quiz, Question, Answer, MinasaProduct, MinigameLevel
 from collections import defaultdict
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import AuthenticationForm
@@ -198,8 +198,10 @@ def search_view(request):
 
 def activities_view(request):
     quizzes = Quiz.objects.all().order_by('-created_at')
+    minigame_levels = MinigameLevel.objects.all().order_by('-created_at')
     context = {
         'quizzes': quizzes,
+        'minigame_levels': minigame_levels,
     }
     return render(request, 'users/activities.html', context)
 
@@ -887,6 +889,114 @@ def find_minasa(request):
     
     return render(request, 'users/find_minasa.html', context)
 
+@login_required
+def admin_minigame(request):
+    if request.user.username == 'admin' or request.user.is_superuser:
+        from .models import MinigameLevel
+        from .forms import MinigameLevelForm
+        levels = MinigameLevel.objects.all().order_by('-created_at')
+        form = MinigameLevelForm()
+        context = {
+            'levels': levels,
+            'total_levels': levels.count(),
+            'form': form,
+        }
+        return render(request, 'adminpage/admin-minigame.html', context)
+    else:
+        return redirect('home')
+
+@login_required
+def add_minigame_level(request):
+    if request.user.username == 'admin' or request.user.is_superuser:
+        from .forms import MinigameLevelForm
+        from django.http import JsonResponse
+
+        if request.method == 'POST':
+            form = MinigameLevelForm(request.POST, request.FILES)
+            if form.is_valid():
+                form.save()
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'success': True})
+                messages.success(request, 'Minigame level added successfully!')
+                return redirect('adminpage-minigame')
+            else:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'success': False, 'error': 'Form validation failed'})
+        else:
+            form = MinigameLevelForm()
+
+        return render(request, 'minigame_add_level.html', {'form': form})
+    else:
+        return redirect('home')
+
 def logout_view(request):
     logout(request)
     return redirect('/')
+
+@login_required
+def edit_minigame_level(request, level_id):
+    if request.user.username == 'admin' or request.user.is_superuser:
+        from .models import MinigameLevel
+        from .forms import MinigameLevelForm
+        level = get_object_or_404(MinigameLevel, id=level_id)
+
+        if request.method == 'POST':
+            form = MinigameLevelForm(request.POST, request.FILES, instance=level)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Minigame level updated successfully!')
+                return redirect('adminpage-minigame')
+        else:
+            form = MinigameLevelForm(instance=level)
+
+        context = {
+            'form': form,
+            'level': level,
+            'is_edit': True,
+        }
+        return render(request, 'minigame_add_level.html', context)
+    else:
+        return redirect('home')
+
+@login_required
+def delete_minigame_level(request, level_id):
+    if request.user.username == 'admin' or request.user.is_superuser:
+        from .models import MinigameLevel
+        from django.http import JsonResponse
+
+        if request.method == 'POST':
+            try:
+                level = MinigameLevel.objects.get(id=level_id)
+                level.delete()
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'success': True})
+                messages.success(request, 'Minigame level deleted successfully!')
+                return redirect('adminpage-minigame')
+            except MinigameLevel.DoesNotExist:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'success': False, 'error': 'Level not found'})
+                messages.error(request, 'Level not found.')
+                return redirect('adminpage-minigame')
+        else:
+            return redirect('adminpage-minigame')
+    else:
+        return redirect('home')
+
+@login_required
+def get_minigame_level_data(request, level_id):
+    from .models import MinigameLevel
+    from django.http import JsonResponse
+
+    try:
+        level = MinigameLevel.objects.get(id=level_id)
+        data = {
+            'id': level.id,
+            'answer': level.answer,
+            'image1_url': level.image1.url if level.image1 else '',
+            'image2_url': level.image2.url if level.image2 else '',
+            'image3_url': level.image3.url if level.image3 else '',
+            'image4_url': level.image4.url if level.image4 else '',
+        }
+        return JsonResponse(data)
+    except MinigameLevel.DoesNotExist:
+        return JsonResponse({'error': 'Level not found'}, status=404)

@@ -1,9 +1,10 @@
 from django.contrib import admin
 from .models import Section, Profile, MinasaProduct
 from django.utils.html import format_html
-from .models import FestivalEvent, Category, Quiz, Question, Answer
+from .models import FestivalEvent, Category, Quiz, Question, Answer, MinigameLevel
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
+from django import forms
 
 @admin.register(Section)
 class SectionAdmin(admin.ModelAdmin):
@@ -91,6 +92,49 @@ class AnswerAdmin(admin.ModelAdmin):
     list_display = ("question", "text", "is_correct")
     search_fields = ("text",)
     list_filter = ("question__quiz", "is_correct")
+
+class MinigameLevelForm(forms.ModelForm):
+    class Meta:
+        model = MinigameLevel
+        fields = ['image1', 'image2', 'image3', 'image4', 'answer']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make all fields required
+        for field in self.fields.values():
+            field.required = True
+
+@admin.register(MinigameLevel)
+class MinigameLevelAdmin(admin.ModelAdmin):
+    form = MinigameLevelForm
+    list_display = ("id", "answer", "image1_preview", "image2_preview", "image3_preview", "image4_preview", "created_at")
+    search_fields = ("answer",)
+    list_filter = ("created_at",)
+    readonly_fields = ("created_at",)
+
+    def image1_preview(self, obj):
+        if obj.image1:
+            return format_html('<img src="{}" width="50" height="50" style="object-fit: cover;" />', obj.image1.url)
+        return "-"
+    image1_preview.short_description = "Image 1"
+
+    def image2_preview(self, obj):
+        if obj.image2:
+            return format_html('<img src="{}" width="50" height="50" style="object-fit: cover;" />', obj.image2.url)
+        return "-"
+    image2_preview.short_description = "Image 2"
+
+    def image3_preview(self, obj):
+        if obj.image3:
+            return format_html('<img src="{}" width="50" height="50" style="object-fit: cover;" />', obj.image3.url)
+        return "-"
+    image3_preview.short_description = "Image 3"
+
+    def image4_preview(self, obj):
+        if obj.image4:
+            return format_html('<img src="{}" width="50" height="50" style="object-fit: cover;" />', obj.image4.url)
+        return "-"
+    image4_preview.short_description = "Image 4"
 
 # Unregister the default User admin and register our custom one
 admin.site.unregister(User)

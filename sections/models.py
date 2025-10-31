@@ -199,3 +199,21 @@ class MinasaProduct(models.Model):
 
     def __str__(self):
         return self.product_name
+
+
+class MinigameLevel(models.Model):
+    """Model for 4 Pics 1 Word minigame levels"""
+    image1 = models.ImageField(upload_to='minigame/')
+    image2 = models.ImageField(upload_to='minigame/')
+    image3 = models.ImageField(upload_to='minigame/')
+    image4 = models.ImageField(upload_to='minigame/')
+    answer = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Minigame Level"
+        verbose_name_plural = "Minigame Levels"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Level {self.id}: {self.answer}"

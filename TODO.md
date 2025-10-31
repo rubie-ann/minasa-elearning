@@ -1,8 +1,7 @@
-- [x] Add URL patterns for quiz view, edit, delete in sections/urls.py
-- [x] Add view functions for quiz_view, quiz_edit, quiz_delete in sections/views.py
-- [x] Create template for viewing quiz details
-- [x] Create template for editing quiz
-- [x] Update adminpage-activities.html to make View, Edit, Delete buttons functional
-- [x] Implement user-facing quiz functionality (activities.html)
-- [x] Add API endpoint for quiz data (quiz_api view)
-- [x] Test the CRUD functionality
+- [x] Create MinigameLevel model in models.py with 4 ImageFields and answer CharField
+- [x] Create MinigameLevelForm in admin.py using ModelForm
+- [x] Add add_minigame_level view in views.py with GET/POST handling
+- [x] Add URL pattern in minasaelearning/urls.py
+- [x] Create minigame_add_level.html template with 2x2 grid layout
+- [x] Add CSS styling for .image-grid
+- [x] Test form submission and file uploads

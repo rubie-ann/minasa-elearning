@@ -320,6 +320,7 @@
 
 <div class="quiz-page">
     <div class="container">
+        <!-- Quizzes Section -->
         <h1 class="quiz-title">QUIZZES</h1>
 
         {% if quizzes %}
@@ -357,6 +358,47 @@
                 <p class="no-quizzes-text">No quizzes available at the moment.</p>
             </div>
         {% endif %}
+
+        <!-- Minigame Levels Section -->
+        <h1 class="quiz-title" style="margin-top: 80px;">MINIGAME LEVELS</h1>
+
+        {% if minigame_levels %}
+            <div class="row">
+                {% for level in minigame_levels %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="quiz-card">
+                            <div class="quiz-card-header">
+                                Level {{ level.id }}
+                            </div>
+                            <div class="quiz-card-body">
+                                <p class="quiz-description">
+                                    Test your knowledge with this interactive minigame level!
+                                </p>
+                                <div class="quiz-meta">
+                                    <div class="quiz-meta-item">
+                                        <span class="quiz-meta-label">Images</span>
+                                        <span class="quiz-meta-value">
+                                            4
+                                        </span>
+                                    </div>
+                                    <div class="quiz-meta-item">
+                                        <span class="quiz-meta-label">Created</span>
+                                        <span class="quiz-meta-value">{{ level.created_at|date:"M d" }}</span>
+                                    </div>
+                                </div>
+                                <button class="btn-take-quiz" onclick="startMinigame({{ level.id }})">
+                                    Play Level
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-quizzes">
+                <p class="no-quizzes-text">No minigame levels available at the moment.</p>
+            </div>
+        {% endif %}
     </div>
 </div>
 
@@ -366,7 +408,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="quizModalLabel">Quiz</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div id="quizContent"></div>
@@ -381,10 +423,32 @@
     </div>
 </div>
 
+<!-- Minigame Modal -->
+<div class="modal fade" id="minigameModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="minigameModalLabel">Minigame</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="minigameContent"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-submit" id="submitMinigameBtn" style="display: none;">
+                    Submit Answer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% verbatim %}
 <script>
 let currentQuizId = null;
 let currentQuestions = [];
 let userAnswers = {};
+let currentMinigameAnswer = null;
 
 function startQuiz(quizId) {
     currentQuizId = quizId;
@@ -405,36 +469,29 @@ function startQuiz(quizId) {
 
 function displayQuiz(quizData) {
     const quizContent = document.getElementById('quizContent');
-    let html = `<h4>${quizData.title}</h4>`;
-    
+    let html = '<h4>' + quizData.title + '</h4>';
+
     if (quizData.description) {
-        html += `<p class="quiz-description-text">${quizData.description}</p>`;
+        html += '<p class="quiz-description-text">' + quizData.description + '</p>';
     }
     html += '<hr>';
 
     quizData.questions.forEach((question, index) => {
-        html += `
-            <div class="question-container">
-                <div class="question-header">
-                    <span class="question-number-badge">${index + 1}</span>
-                    ${question.text}
-                </div>
-                <div class="answers">
-        `;
+        html += '<div class="question-container">' +
+                '<div class="question-header">' +
+                    '<span class="question-number-badge">' + (index + 1) + '</span>' +
+                    question.text +
+                '</div>' +
+                '<div class="answers">';
 
         question.answers.forEach((answer, answerIndex) => {
             const optionLetter = String.fromCharCode(65 + answerIndex);
-            html += `
-                <div class="answer-option">
-                    <input type="radio" 
-                           name="question_${question.id}" 
-                           value="${optionLetter}" 
-                           id="answer_${question.id}_${optionLetter}">
-                    <label for="answer_${question.id}_${optionLetter}">
-                        ${optionLetter}. ${answer.text}
-                    </label>
-                </div>
-            `;
+            html += '<div class="answer-option">' +
+                    '<input type="radio" name="question_' + question.id + '" value="' + optionLetter + '" id="answer_' + question.id + '_' + optionLetter + '">' +
+                    '<label for="answer_' + question.id + '_' + optionLetter + '">' +
+                        optionLetter + '. ' + answer.text +
+                    '</label>' +
+                '</div>';
         });
 
         html += '</div></div>';
@@ -475,10 +532,10 @@ document.getElementById('submitQuizBtn').addEventListener('click', function() {
 
 function displayResults(correct, total, score) {
     const quizContent = document.getElementById('quizContent');
-    
+
     let feedbackClass = 'alert-success';
     let feedbackMessage = 'Excellent! You did great!';
-    
+
     if (score < 60) {
         feedbackClass = 'alert-danger';
         feedbackMessage = 'Keep studying and try again!';
@@ -487,42 +544,126 @@ function displayResults(correct, total, score) {
         feedbackMessage = 'Good job! Keep practicing.';
     }
 
-    let html = `
-        <div class="results-header">
-            <h4>Quiz Results</h4>
-            <div class="score-display">${score}%</div>
-            <p class="score-text">You got ${correct} out of ${total} questions correct</p>
-            <div class="alert ${feedbackClass}" style="border-radius: 15px; margin-top: 20px;">
-                <strong>${feedbackMessage}</strong>
-            </div>
-        </div>
-        <hr>
-        <div class="review-section">
-            <h5 class="review-title">📋 Review Your Answers</h5>
-    `;
+    let html = '<div class="results-header">' +
+        '<h4>Quiz Results</h4>' +
+        '<div class="score-display">' + score + '%</div>' +
+        '<p class="score-text">You got ' + correct + ' out of ' + total + ' questions correct</p>' +
+        '<div class="alert ' + feedbackClass + '" style="border-radius: 15px; margin-top: 20px;">' +
+            '<strong>' + feedbackMessage + '</strong>' +
+        '</div>' +
+    '</div>' +
+    '<hr>' +
+    '<div class="review-section">' +
+        '<h5 class="review-title">📋 Review Your Answers</h5>';
 
     currentQuestions.forEach((question, index) => {
         const userAnswer = userAnswers[question.id] || 'Not answered';
         const correctAnswer = question.correct_answer;
         const isCorrect = userAnswer === correctAnswer;
 
-        html += `
-            <div class="answer-review ${isCorrect ? 'correct' : 'incorrect'}">
-                <div class="review-question">Question ${index + 1}: ${question.text}</div>
-                <div class="review-detail"><strong>Your answer:</strong> ${userAnswer}</div>
-                <div class="review-detail"><strong>Correct answer:</strong> ${correctAnswer}</div>
-                <span class="result-badge ${isCorrect ? 'correct' : 'incorrect'}">
-                    ${isCorrect ? '✓ Correct' : '✗ Incorrect'}
-                </span>
-            </div>
-        `;
+        html += '<div class="answer-review ' + (isCorrect ? 'correct' : 'incorrect') + '">' +
+            '<div class="review-question">Question ' + (index + 1) + ': ' + question.text + '</div>' +
+            '<div class="review-detail"><strong>Your answer:</strong> ' + userAnswer + '</div>' +
+            '<div class="review-detail"><strong>Correct answer:</strong> ' + correctAnswer + '</div>' +
+            '<span class="result-badge ' + (isCorrect ? 'correct' : 'incorrect') + '">' +
+                (isCorrect ? '✓ Correct' : '✗ Incorrect') +
+            '</span>' +
+        '</div>';
     });
 
     html += '</div>';
     quizContent.innerHTML = html;
     document.getElementById('submitQuizBtn').style.display = 'none';
 }
+
+function startMinigame(levelId) {
+    fetch(`/users/get_minigame_level_data/${levelId}/`)
+        .then(response => response.json())
+        .then(data => {
+            displayMinigame(data);
+            new bootstrap.Modal(document.getElementById('minigameModal')).show();
+        })
+        .catch(error => {
+            console.error('Error loading minigame level:', error);
+            alert('Error loading minigame level. Please try again.');
+        });
+}
+
+function displayMinigame(levelData) {
+    currentMinigameAnswer = levelData.answer;
+    const minigameContent = document.getElementById('minigameContent');
+    let html = '<h4>Minigame Level ' + levelData.id + '</h4>';
+    html += '<p class="quiz-description-text">Look at the images and guess what they represent!</p>';
+    html += '<hr>';
+
+    html += '<div class="question-container">';
+    html += '<div class="question-header">What do these images have in common?</div>';
+    html += '<div class="row">';
+
+    // Display images
+    if (levelData.image1_url) {
+        html += '<div class="col-md-3 mb-3"><img src="' + levelData.image1_url + '" class="img-fluid rounded" alt="Image 1"></div>';
+    }
+    if (levelData.image2_url) {
+        html += '<div class="col-md-3 mb-3"><img src="' + levelData.image2_url + '" class="img-fluid rounded" alt="Image 2"></div>';
+    }
+    if (levelData.image3_url) {
+        html += '<div class="col-md-3 mb-3"><img src="' + levelData.image3_url + '" class="img-fluid rounded" alt="Image 3"></div>';
+    }
+    if (levelData.image4_url) {
+        html += '<div class="col-md-3 mb-3"><img src="' + levelData.image4_url + '" class="img-fluid rounded" alt="Image 4"></div>';
+    }
+
+    html += '</div>';
+    html += '<div class="mt-4">';
+    html += '<label for="minigame_answer" class="form-label">Your Answer:</label>';
+    html += '<input type="text" class="form-control" id="minigame_answer" placeholder="Type your answer here...">';
+    html += '</div>';
+    html += '</div>';
+
+    minigameContent.innerHTML = html;
+    document.getElementById('submitMinigameBtn').style.display = 'block';
+}
+
+document.getElementById('submitMinigameBtn').addEventListener('click', function() {
+    submitMinigameAnswer(currentMinigameAnswer);
+});
+
+function submitMinigameAnswer(correctAnswer) {
+    const userAnswer = document.getElementById('minigame_answer').value.trim().toLowerCase();
+    const minigameContent = document.getElementById('minigameContent');
+
+    if (!userAnswer) {
+        alert('Please enter an answer.');
+        return;
+    }
+
+    const isCorrect = userAnswer === correctAnswer.toLowerCase();
+    let feedbackClass = isCorrect ? 'alert-success' : 'alert-danger';
+    let feedbackMessage = isCorrect ? 'Correct! Well done!' : 'Incorrect. Try again!';
+
+    let html = '<div class="results-header">' +
+        '<h4>Minigame Result</h4>' +
+        '<div class="alert ' + feedbackClass + '" style="border-radius: 15px; margin-top: 20px;">' +
+            '<strong>' + feedbackMessage + '</strong>' +
+        '</div>' +
+    '</div>' +
+    '<hr>' +
+    '<div class="review-section">' +
+        '<div class="answer-review ' + (isCorrect ? 'correct' : 'incorrect') + '">' +
+            '<div class="review-detail"><strong>Your answer:</strong> ' + userAnswer + '</div>' +
+            '<div class="review-detail"><strong>Correct answer:</strong> ' + correctAnswer + '</div>' +
+            '<span class="result-badge ' + (isCorrect ? 'correct' : 'incorrect') + '">' +
+                (isCorrect ? '✓ Correct' : '✗ Incorrect') +
+            '</span>' +
+        '</div>' +
+    '</div>';
+
+    minigameContent.innerHTML = html;
+    document.getElementById('submitMinigameBtn').style.display = 'none';
+}
 </script>
+{% endverbatim %}
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

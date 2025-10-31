@@ -33,6 +33,11 @@ urlpatterns = [
     path('adminpage/festival-calendar/', views.adminpage_festival_calendar, name='adminpage-festival-calendar'),
     path('adminpage/minasa-products/', views.adminpage_minasa_products, name='adminpage-minasa-products'),
     path('adminpage/user-action/', views.user_management, name='adminpage-user-action'),  # For POST requests
+    path('adminpage/minigame/', views.admin_minigame, name='adminpage-minigame'),
+    path('minigame/add-level/', views.add_minigame_level, name='add_minigame_level'),
+    path('adminpage/edit-minigame-level/<int:level_id>/', views.edit_minigame_level, name='edit_minigame_level'),
+    path('adminpage/delete-minigame-level/<int:level_id>/', views.delete_minigame_level, name='delete_minigame_level'),
+    path('adminpage/get-minigame-level-data/<int:level_id>/', views.get_minigame_level_data, name='get_minigame_level_data'),
     path('accounts/profile/', views.profile_view, name='accounts_profile'),
     path('accounts/signup/', views.signup, name='signup'),
     path('accounts/', include('django.contrib.auth.urls')),
