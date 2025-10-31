@@ -624,7 +624,7 @@ function displayMinigame(levelData) {
     
     const letterPool = shuffleArray([...answerLetters]);
     
-    let html = '<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 15px; color: white;">';
+    let html = '<div style="background: linear-gradient(135deg, #f4d03f 0%, #d4af37 100%); padding: 30px; border-radius: 15px; color: white;">';
     html += '<h4 style="text-align: center; margin-bottom: 5px; color: white;">Level ' + levelData.id + '</h4>';
     html += '<p style="text-align: center; color: #fff; opacity: 0.9; font-size: 0.95rem;">4 Pics 1 Word</p>';
     html += '</div>';
@@ -659,14 +659,14 @@ function displayMinigame(levelData) {
     const answerLength = currentMinigameAnswer.replace(/\s/g, '').length;
     html += '<div style="display: flex; justify-content: center; gap: 8px; margin: 25px 0; flex-wrap: wrap;" id="answerBoxes">';
     for (let i = 0; i < answerLength; i++) {
-        html += '<div class="answer-box" data-index="' + i + '" style="width: 45px; height: 55px; background: white; border: 3px solid #667eea; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; color: #333; cursor: pointer; transition: all 0.2s;"></div>';
+        html += '<div class="answer-box" data-index="' + i + '" style="width: 45px; height: 55px; background: white; border: 3px solid #d4af37; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; color: #333; cursor: pointer; transition: all 0.2s;"></div>';
     }
     html += '</div>';
 
     // Letter tiles
     html += '<div style="display: flex; justify-content: center; gap: 6px; margin: 25px 0; flex-wrap: wrap;" id="letterPool">';
     letterPool.forEach((letter, index) => {
-        html += '<button class="letter-tile" data-letter="' + letter + '" data-tile-index="' + index + '" style="width: 45px; height: 55px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 1.5rem; font-weight: bold; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" onclick="selectLetter(this)">' + letter + '</button>';
+        html += '<button class="letter-tile" data-letter="' + letter + '" data-tile-index="' + index + '" style="width: 45px; height: 55px; background: linear-gradient(135deg, #f4d03f 0%, #d4af37 100%); color: white; border: none; border-radius: 8px; font-size: 1.5rem; font-weight: bold; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" onclick="selectLetter(this)">' + letter + '</button>';
     });
     html += '</div>';
 
@@ -757,12 +757,13 @@ function showMinigameResult(isCorrect) {
         '</div>' +
     '</div>' +
     '<div style="text-align: center; margin-top: 20px;">' +
-        '<div style="font-size: 3rem; color: #667eea; font-weight: bold; text-transform: uppercase; letter-spacing: 3px;">' + currentMinigameAnswer + '</div>' +
+        '<div style="font-size: 3rem; color: #d4af37; font-weight: bold; text-transform: uppercase; letter-spacing: 3px;">' + currentMinigameAnswer + '</div>' +
     '</div>';
 
     minigameContent.innerHTML = html;
     document.getElementById('submitMinigameBtn').style.display = 'none';
 }
+
 
 
 function selectLetter(tile) {
