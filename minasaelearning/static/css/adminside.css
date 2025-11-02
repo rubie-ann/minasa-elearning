@@ -1,4 +1,4 @@
-/* Sidebar Styles */
+s/* Sidebar Styles */
 body.admin-dashboard-page {
     font-family: 'Inter', sans-serif; /* Slightly more modern font look */
     background-color: #f4f6f9 !important; /* Light gray background */
@@ -91,6 +91,92 @@ body.admin-dashboard-page .container {
 .admin-nav i {
     margin-right: 10px;
     width: 20px;
+    text-align: center;
+}
+
+/* Navigation section with submenu */
+.nav-section {
+    padding: 0;
+}
+
+.nav-section-header {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    color: #333;
+    text-decoration: none;
+    transition: background-color 0.3s, color 0.3s;
+    border-left: 4px solid transparent;
+    font-weight: 500;
+    cursor: pointer;
+    position: relative;
+}
+
+.nav-section-header::after {
+    content: '▼';
+    position: absolute;
+    right: 20px;
+    font-size: 12px;
+    transition: transform 0.3s ease;
+}
+
+.nav-section {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-section.active::after {
+    transform: rotate(180deg);
+}
+
+.nav-section-header:hover,
+.nav-section-header.active {
+    background-color: #f0f7fd;
+    color: #f5b031;
+    border-left: 4px solid #f5b031;
+}
+
+.nav-section-header i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+.nav-submenu {
+    padding: 0;
+    margin: 0;
+    background-color: #f8f9fa;
+    display: none;
+    transition: all 0.3s ease;
+}
+
+.nav-section.active .nav-submenu {
+    display: block;
+}
+
+.nav-submenu a {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px 12px 50px;
+    color: #666;
+    text-decoration: none;
+    transition: background-color 0.3s, color 0.3s;
+    border-left: 4px solid transparent;
+    font-weight: 400;
+    font-size: 14px;
+}
+
+.nav-submenu a:hover,
+.nav-submenu a.active {
+    background-color: #e9ecef;
+    color: #f5b031;
+    border-left: 4px solid #f5b031;
+}
+
+.nav-submenu i {
+    margin-right: 8px;
+    width: 16px;
     text-align: center;
 }
 
