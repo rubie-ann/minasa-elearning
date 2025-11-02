@@ -208,6 +208,7 @@ class MinigameLevel(models.Model):
     image3 = models.ImageField(upload_to='minigame/')
     image4 = models.ImageField(upload_to='minigame/')
     answer = models.CharField(max_length=50)
+    attempts = models.PositiveIntegerField(default=0, help_text="Number of times this level has been attempted")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -217,6 +218,11 @@ class MinigameLevel(models.Model):
 
     def __str__(self):
         return f"Level {self.id}: {self.answer}"
+
+    def increment_attempts(self):
+        """Increment the attempts counter"""
+        self.attempts += 1
+        self.save()
     
 class GrowthStage(models.Model):
     title = models.CharField(max_length=200)

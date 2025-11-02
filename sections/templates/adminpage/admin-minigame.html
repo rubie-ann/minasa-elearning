@@ -83,6 +83,7 @@
                                     <th>ID</th>
                                     <th>Answer</th>
                                     <th>Images</th>
+                                    <th>Attempts</th>
                                     <th>Created</th>
                                     <th>Actions</th>
                                 </tr>
@@ -116,6 +117,7 @@
                                             {% endif %}
                                         </div>
                                     </td>
+                                    <td>{{ level.attempts }}</td>
                                     <td>{{ level.created_at|date:"M d, Y H:i" }}</td>
                                     <td>
                                         <button type="button" class="btn btn-sm btn-warning me-1" onclick="editLevel({{ level.id }})">

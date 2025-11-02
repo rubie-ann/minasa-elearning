@@ -991,6 +991,8 @@ def get_minigame_level_data(request, level_id):
 
     try:
         level = MinigameLevel.objects.get(id=level_id)
+        # Increment attempts when level is accessed
+        level.increment_attempts()
         data = {
             'id': level.id,
             'answer': level.answer,
