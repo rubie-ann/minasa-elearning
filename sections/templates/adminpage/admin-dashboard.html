@@ -167,6 +167,22 @@
             grid-template-columns: 1fr;
         }
     }
+
+    .stat-card.quizzes {
+        border-left-color: #17a2b8;
+    }
+
+    .stat-card.minigame {
+        border-left-color: #ffc107;
+    }
+
+    .stat-icon.quizzes {
+        background: linear-gradient(135deg, #17a2b8, #138496);
+    }
+
+    .stat-icon.minigame {
+        background: linear-gradient(135deg, #ffc107, #e0a800);
+    }
 </style>
 <link rel="stylesheet" href="{% static 'css/adminside.css' %}">
 
@@ -256,6 +272,28 @@
                     </div>
                     <div class="stat-icon products">
                         <i class="fas fa-shopping-bag"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card quizzes">
+                <div class="stat-content">
+                    <div class="stat-info">
+                        <h3>{{ total_quizzes }}</h3>
+                        <p>Total Quizzes</p>
+                    </div>
+                    <div class="stat-icon quizzes">
+                        <i class="fas fa-question-circle"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card minigame">
+                <div class="stat-content">
+                    <div class="stat-info">
+                        <h3>{{ total_minigame_levels }}</h3>
+                        <p>Minigame Levels</p>
+                    </div>
+                    <div class="stat-icon minigame">
+                        <i class="fas fa-gamepad"></i>
                     </div>
                 </div>
             </div>

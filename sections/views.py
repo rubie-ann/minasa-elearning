@@ -169,6 +169,8 @@ def admin_dashboard(request):
             'total_festival_events': FestivalEvent.objects.count(),
             'total_activities': 0,  # Placeholder - you can add actual activity model later
             'total_minasa_products': MinasaProduct.objects.count(),
+            'total_quizzes': Quiz.objects.count(),
+            'total_minigame_levels': MinigameLevel.objects.count(),
         }
         return render(request, 'adminpage/admin-dashboard.html', context)
     else:
