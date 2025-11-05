@@ -654,6 +654,28 @@ document.getElementById('searchSections').addEventListener('input', function(e) 
 });
 
 // NEW: Category Filter Functionality
+// function filterSections() {
+//     const searchTerm = document.getElementById('searchSections').value.toLowerCase();
+//     const filterTerm = document.getElementById('filterCategory').value.toLowerCase();
+//     const cards = document.querySelectorAll('.section-card');
+    
+//     cards.forEach(card => {
+//         const title = card.querySelector('.card-title').textContent.toLowerCase();
+//         const category = card.getAttribute('data-section-category').toLowerCase();
+//         // const category = card.getAttribute('data-category'); // Using the data-category attribute
+//         const description = card.querySelector('.card-description').textContent.toLowerCase();
+        
+//         const matchesSearch = title.includes(searchTerm) || description.includes(searchTerm) || category.includes(searchTerm);
+//         const matchesFilter = filterTerm === 'all' || category === filterTerm;
+        
+//         if (matchesSearch && matchesFilter) {
+//             card.style.display = 'block';
+//         } else {
+//             card.style.display = 'none';
+//         }
+//     });
+// }
+
 function filterSections() {
     const searchTerm = document.getElementById('searchSections').value.toLowerCase();
     const filterTerm = document.getElementById('filterCategory').value.toLowerCase();
@@ -661,19 +683,16 @@ function filterSections() {
     
     cards.forEach(card => {
         const title = card.querySelector('.card-title').textContent.toLowerCase();
-        const category = card.getAttribute('data-category'); // Using the data-category attribute
+        const category = card.getAttribute('data-section-category').toLowerCase();
         const description = card.querySelector('.card-description').textContent.toLowerCase();
         
         const matchesSearch = title.includes(searchTerm) || description.includes(searchTerm) || category.includes(searchTerm);
         const matchesFilter = filterTerm === 'all' || category === filterTerm;
         
-        if (matchesSearch && matchesFilter) {
-            card.style.display = 'block';
-        } else {
-            card.style.display = 'none';
-        }
+        card.style.display = (matchesSearch && matchesFilter) ? 'block' : 'none';
     });
 }
+
 
 // Modal functions
 function openAddModal() {

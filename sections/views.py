@@ -447,13 +447,15 @@ def category_manager(request):
         return render(request, 'adminpage/categoryManager.html', context)
     else:
         return redirect('home')
-    
+
+@login_required
 def content_manager(request):
     # Allow admin user access regardless of superuser status
     if request.user.username == 'admin' or request.user.is_superuser:
         # Handle CRUD operations
         if request.method == 'POST':
             action = request.POST.get('action')
+            section_id = request.POST.get('section_id')
             
             if action == 'add':
                 # Add new section
@@ -479,6 +481,38 @@ def content_manager(request):
                     messages.success(request, f'Section "{title}" has been added successfully.')
                 else:
                     messages.error(request, 'Please fill in all required fields.')
+            
+            # EDIT SECTION
+            elif action == 'edit' and section_id:
+                section = get_object_or_404(Section, id=section_id)
+                section.title = request.POST.get('title')
+                section.category = request.POST.get('category')
+                section.description = request.POST.get('description')
+                section.link = request.POST.get('link')
+
+                if request.FILES.get('image'):
+                    section.image = request.FILES['image']
+                if request.FILES.get('attachment'):
+                    section.attachment = request.FILES['attachment']
+
+                section.save()
+                messages.success(request, f'Section "{section.title}" updated successfully.')
+                return redirect('adminpage-content-manager')
+
+            # DELETE SINGLE
+            elif action == 'delete' and section_id:
+                section = get_object_or_404(Section, id=section_id)
+                section.delete()
+                messages.success(request, 'Section deleted successfully.')
+                return redirect('adminpage-content-manager')
+
+            # DELETE MULTIPLE
+            elif action == 'delete_multiple':
+                ids = request.POST.get('section_id', '')
+                id_list = [int(i) for i in ids.split(',') if i.isdigit()]
+                Section.objects.filter(id__in=id_list).delete()
+                messages.success(request, 'Selected sections deleted successfully.')
+                return redirect('adminpage-content-manager')
         
         # Get all sections and statistics
         sections = Section.objects.all().order_by('-id')
@@ -501,6 +535,7 @@ def content_manager(request):
             'categories': categories,
         }
         return render(request, 'adminpage/educManager.html', context)
+    
     else:
         # Redirect non-admin, non-superuser users
         return redirect('home')

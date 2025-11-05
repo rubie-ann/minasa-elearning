@@ -271,7 +271,7 @@
         <section class="panel">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <a href="{% url 'adminpage-content-manager' %}" class="btn btn-success">
-                    <i class="fas fa-layer-group"></i> Back toContent Manager
+                    <i class="fas fa-layer-group"></i> Back to Content Manager
                 </a>
                 
             </div>
@@ -373,14 +373,28 @@ function openAddModal() {
 }
 
 function editCategory(categoryId) {
+    // Change modal title and mode
     document.getElementById('modalTitle').textContent = 'Edit Category';
     document.getElementById('actionType').value = 'edit';
     document.getElementById('categoryId').value = categoryId;
     document.getElementById('submitBtn').textContent = 'Update Category';
+
+    // Find the card using the ID
+    const card = document.querySelector(`.category-card[data-category-id="${categoryId}"]`);
+    if (card) {
+        const name = card.querySelector('.category-name').textContent.trim();
+        const description = card.querySelector('.category-description').textContent.trim();
+
+        // Autofill form fields
+        document.getElementById('categoryName').value = name;
+        document.getElementById('categoryDescription').value = 
+            description === 'No description' ? '' : description;
+    }
+
+    // Show modal
     document.getElementById('categoryModal').style.display = 'block';
-    
-    // In a real implementation, you would fetch and populate the form with existing data
 }
+
 
 function closeModal() {
     document.getElementById('categoryModal').style.display = 'none';
