@@ -774,8 +774,40 @@ function deleteSelected() {
 }
 
 function generateReport() {
-    alert('Report generation functionality would be implemented here.');
+    const searchTerm = document.getElementById('searchSections').value.trim();
+    const filterCategory = document.getElementById('filterCategory').value;
+
+    // Create a hidden form to send data to backend
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{% url "generate_content_report" %}';  // new view
+    form.target = '_blank';  // open the PDF in new tab
+
+    // CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+
+    // Include search/filter values
+    const searchInput = document.createElement('input');
+    searchInput.type = 'hidden';
+    searchInput.name = 'search';
+    searchInput.value = searchTerm;
+    form.appendChild(searchInput);
+
+    const categoryInput = document.createElement('input');
+    categoryInput.type = 'hidden';
+    categoryInput.name = 'category';
+    categoryInput.value = filterCategory;
+    form.appendChild(categoryInput);
+
+    document.body.appendChild(form);
+    form.submit();
 }
+
 
 function performAction(id, action) {
     const form = document.createElement('form');

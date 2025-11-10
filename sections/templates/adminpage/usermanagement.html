@@ -174,7 +174,9 @@
                 
                 <div style="margin-left: auto; display: flex; gap: 10px;">
                     <button style="background-color: #dc3545; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;"><i class="fas fa-trash"></i> Delete</button>
-                    <button style="background-color: #ffc107; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;"><i class="fas fa-file-alt"></i> Generate Report</button>
+                    <a href="{% url 'generate_user_report' %}" >
+                        <button style="background-color: #ffc107; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;"><i class="fas fa-file-alt"></i> Generate Report</button>
+                    </a>
                 </div>
 
             </div>

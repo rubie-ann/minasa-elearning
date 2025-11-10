@@ -42,6 +42,8 @@ urlpatterns = [
     path('accounts/signup/', views.signup, name='signup'),
     path('accounts/', include('django.contrib.auth.urls')),
     path('logout/', views.logout_view, name='logout'),
+    path('generate-report/', views.generate_content_report, name='generate_content_report'),
+    path('generate-user-report/', views.generate_user_report, name='generate_user_report'),
 ]
 
 if settings.DEBUG:

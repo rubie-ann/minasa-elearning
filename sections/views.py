@@ -14,7 +14,16 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse
 from .models import GrowthStage
 from django.contrib.auth import logout
-
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.lib.utils import simpleSplit
+from .models import Section
+from reportlab.platypus import Table, TableStyle, Paragraph, SimpleDocTemplate, Spacer
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from io import BytesIO
+from django.contrib.auth.models import User
 
 
 
@@ -1055,3 +1064,145 @@ def growth_timeline(request):
         'max_date': max_date.isoformat()
     }
     return render(request, 'users/growth_timeline.html', context)
+
+def generate_content_report(request):
+    search = request.POST.get('search', '').lower()
+    category = request.POST.get('category', 'all').lower()
+
+    sections = Section.objects.all()
+
+    if search:
+        sections = sections.filter(title__icontains=search)
+    if category != 'all':
+        sections = sections.filter(category__iexact=category)
+
+    # Create the PDF response
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="educational_sections_report.pdf"'
+
+    p = canvas.Canvas(response, pagesize=letter)
+    p.setTitle("Educational Sections Report")
+    p.setAuthor("Minasa E-Learning System")
+    p.setSubject("Generated Educational Content Report")
+    width, height = letter
+    y = height - 80
+
+    # Header
+    p.setFont("Helvetica-Bold", 16)
+    p.drawCentredString(width / 2, y, "Educational Sections Report")
+    y -= 40
+
+    # Body
+    for section in sections:
+        if y < 120:
+            p.showPage()
+            y = height - 60
+            p.setFont("Helvetica", 12)
+
+        # Title (bold)
+        p.setFont("Helvetica-Bold", 12)
+        p.drawString(50, y, section.title)
+        y -= 15
+
+        # Category
+        p.setFont("Helvetica", 11)
+        p.drawString(50, y, f"Category: {section.category}")
+        y -= 15
+
+        # Description (wrapped text)
+        p.setFont("Helvetica", 10)
+        text = section.description if section.description else "No description available."
+        wrapped_text = simpleSplit(text, "Helvetica", 10, width - 100)  # wrap width
+        for line in wrapped_text:
+            if y < 100:
+                p.showPage()
+                y = height - 60
+                p.setFont("Helvetica", 10)
+            p.drawString(50, y, line)
+            y -= 12
+
+        y -= 15  # space before next section
+
+    p.showPage()
+    p.save()
+    return response
+
+def generate_user_report(request):
+    from io import BytesIO
+    from django.http import HttpResponse
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from django.contrib.auth.models import User
+    from datetime import datetime
+
+    # Fetch users
+    users = User.objects.all()
+
+    # PDF buffer
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=letter,
+        title="User Management Report",
+        author="Minasa E-Learning System"
+    )
+
+    elements = []
+    styles = getSampleStyleSheet()
+
+    # Title
+    title = Paragraph("<b>User Management Report</b>", styles['Title'])
+    elements.append(title)
+    elements.append(Spacer(1, 10))
+
+    # Table headers
+    data = [["Username", "Email address", "First Name", "Last Name", "Staff", "Superuser", "Date Joined"]]
+
+    # Table rows
+    for user in users:
+        staff_status = "Yes" if user.is_staff else "No"
+        superuser_status = "Yes" if user.is_superuser else "No"
+        date_joined = user.date_joined.strftime("%b %d, %Y")
+
+        data.append([
+            user.username,
+            user.email or "No email",
+            user.first_name or "-",
+            user.last_name or "-",
+            staff_status,
+            superuser_status,
+            date_joined
+        ])
+
+    # Create the table
+    table = Table(data, repeatRows=1, colWidths=[80, 150, 80, 80, 60, 60, 80])
+
+    # Style the table
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#f97316")),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('TOPPADDING', (0, 0), (-1, -1), 4),
+        ('GRID', (0, 0), (-1, -1), 0, colors.white),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.whitesmoke, colors.lightgrey])
+    ]))
+
+    elements.append(table)
+    doc.build(elements)
+
+    # Date generated
+    gen_date = datetime.now().strftime("%B %d, %Y - %I:%M %p")
+    elements.append(Paragraph(f"Generated on: {gen_date}", styles['Normal']))
+    elements.append(Spacer(1, 20))
+    
+    # Return PDF
+    buffer.seek(0)
+    response = HttpResponse(buffer, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="user_report.pdf"'
+    return response
+
