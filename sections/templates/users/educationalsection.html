@@ -4,22 +4,54 @@
 {% block title %}Educational Sections{% endblock %}
 
 {% block content %}
-<br><br><br><br>
-<input type="text" placeholder=" Search Content..." class="searchcontent">
+<style>
+    .edu-header{max-width:800px;margin:40px auto 10px;padding:0 20px;text-align:center}
+    .edu-title{font-size:3rem;color:#5e2217;margin:0}
+    .edu-sub{color:#666;margin-top:6px}
+    .searchcontent{display:block;margin:8px auto 10px;width:100%;max-width:520px;padding:12px 16px;border-radius:999px;border:1px solid #ddd;box-shadow:0 2px 10px rgba(0,0,0,0.04)}
+    .searchcontent:focus{outline:none;border-color:#f97316;box-shadow:0 0 0 3px rgba(19, 18, 16, 0.15)}
+    .seemorebtn{display:inline-block;padding:8px 16px;background:linear-gradient(135deg,#fbbf24,#f97316);color:#fff;border-radius:10px}
+    .seemorebtn:hover{filter:brightness(0.95)}
+    .section-title{margin-top:0}
+    body{overflow-x: hidden;}
+    /* .video-section{border-radius:16px;background:#fff;box-shadow:0 6px 20px rgba(0,0,0,0.06)} */
+    /* .video-section h2{margin-top:0} */
+    @media (max-width: 700px){ .edu-title{font-size:1.6rem} }
+    .edu-controls{max-width:1200px;margin:0 auto 6px;padding:0 20px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
+    .edu-controls .searchcontent{margin:0;flex:1 1 420px}
+    .category-filter{width:100%;max-width:260px;padding:12px 14px;border-radius:999px;border:1px solid #ddd;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,0.04);color:#333}
+    .category-filter:focus{outline:none;border-color:#f97316;box-shadow:0 0 0 3px rgba(249,115,22,0.15)}
+    .titlediv{display:inline-block;margin:24px auto 12px;padding:10px 16px;background:#fff8ec;border-radius:10px;color:#5e2217;font-weight:700;letter-spacing:1px;font-size: 2rem;width: 100%;}
+  </style>
+
+<div class="edu-header" data-reveal>
+  <h1 class="edu-title">Explore Educational Sections</h1>
+  <p class="edu-sub">Search and discover curated content about Minasa’s culture and growth.</p>
+</div>
+
+<div class="edu-controls" data-reveal>
+  <input type="text" placeholder="Search content..." class="searchcontent">
+  <select class="category-filter" aria-label="Filter by category">
+    <option value="">All categories</option>
+    {% for category, _sections in grouped_sections.items %}
+      <option value="{{ category }}">{{ category }}</option>
+    {% endfor %}
+  </select>
+  </div>
 
 
 {% for category, sections in grouped_sections.items %}
     <div class="titlediv">{{ category }}</div>
     {% for section in sections %}
-        <div class="sectionholder {% if forloop.counter|divisibleby:2 %}reverse{% endif %}">
-            <div class="sectionimgholder">
+        <div class="sectionholder {% if forloop.counter|divisibleby:2 %}reverse{% endif %}" data-reveal>
+            <div class="sectionimgholder" data-reveal="left">
                 {% if section.image %}
                     <img src="{{ section.image.url }}" alt="{{ section.title }}" class="imgsection">
                 {% else %}
                     <p>No image available.</p>
                 {% endif %}
             </div>
-            <div class="sectioninfoholder">
+            <div class="sectioninfoholder" data-reveal="right">
                 <h3 class="section-title">{{ section.title }}</h3>
                 <p class="section-description">{{ section.description|truncatewords:50 }}</p>
 
@@ -60,7 +92,7 @@
     {% endfor %}
 {% endfor %}
 
-<div class="video-section" style="text-align: center; margin: 40px auto; padding: 20px;">
+<div class="video-section" style="text-align: center; margin: 40px auto; padding: 20px;" data-reveal>
     <h2 style="text-align: center;">LEARN MORE OF MINASA FESTIVAL!</h2>
     <iframe 
         width="560" 
@@ -75,7 +107,7 @@
     </iframe>
 </div>
 
-<div class="video-section" style="text-align: center; margin: 40px auto; padding: 20px;">
+<div class="video-section" style="text-align: center; margin: 40px auto; padding: 20px;" data-reveal>
     <h2>WANNA LEARN ABOUT ARROWROOT CULTIVATION?</h2>
     <iframe width="560" 
         height="315" 
@@ -154,15 +186,31 @@ document.addEventListener('DOMContentLoaded', function () {
     window.onclick = (e) => { if (e.target === modal) modal.style.display = "none"; };
 
 const searchInput = document.querySelector('.searchcontent');
+const categorySelect = document.querySelector('.category-filter');
 const videoSections = document.querySelectorAll('.video-section');
 
-searchInput.addEventListener('keyup', function() {
-    const query = this.value.toLowerCase();
+function applyFilter(){
+    const query = (searchInput.value || '').toLowerCase();
+    const selectedCategory = (categorySelect && categorySelect.value) || '';
 
     document.querySelectorAll('.titlediv').forEach(titleDiv => {
+        const categoryName = (titleDiv.textContent || '').trim();
+        const categoryMatches = !selectedCategory || categoryName.toLowerCase() === selectedCategory.toLowerCase();
+
         let hasVisibleSection = false;
         let section = titleDiv.nextElementSibling;
 
+        // If category does not match, hide entire category block
+        if (!categoryMatches){
+            titleDiv.style.display = 'none';
+            while (section && section.classList.contains('sectionholder')) {
+                section.style.display = 'none';
+                section = section.nextElementSibling;
+            }
+            return;
+        }
+
+        // Category matches; filter its sections by text query
         while (section && section.classList.contains('sectionholder')) {
             const title = section.querySelector('h3').textContent.toLowerCase();
             const description = section.querySelector('.section-description').textContent.toLowerCase();
@@ -188,12 +236,39 @@ searchInput.addEventListener('keyup', function() {
         titleDiv.style.display = hasVisibleSection ? 'block' : 'none';
     });
 
-     if (query !== '') {
+    // Hide videos if filtering
+    if ((searchInput.value && searchInput.value.trim() !== '') || (selectedCategory && selectedCategory !== '')) {
         videoSections.forEach(v => v.style.display = 'none');
     } else {
         videoSections.forEach(v => v.style.display = 'block');
     }
-})});
+}
+
+if (searchInput) searchInput.addEventListener('keyup', applyFilter);
+if (categorySelect) categorySelect.addEventListener('change', function(){
+    applyFilter();
+    const value = (categorySelect.value || '').toLowerCase();
+    if (value){
+        const headings = Array.from(document.querySelectorAll('.titlediv'));
+        const target = headings.find(h => (h.textContent||'').trim().toLowerCase() === value);
+        if (target){ target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    }
+});
+applyFilter();
+
+// Allow clicking category headers to filter by that category
+document.querySelectorAll('.titlediv').forEach(function(titleDiv){
+    titleDiv.style.cursor = 'pointer';
+    titleDiv.title = 'Click to filter to ' + titleDiv.textContent.trim();
+    titleDiv.addEventListener('click', function(){
+        if(!categorySelect) return;
+        const name = titleDiv.textContent.trim();
+        categorySelect.value = name;
+        categorySelect.dispatchEvent(new Event('change'));
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+});
+});
 </script>
 
 {% endblock %}

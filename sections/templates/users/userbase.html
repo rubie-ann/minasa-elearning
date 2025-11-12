@@ -4,26 +4,91 @@
 <head>
     <title>{% block title %}{% endblock %}</title>
     <link rel="stylesheet" type="text/css" href="{% static 'css/section_css.css' %}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <div class="tabtitle">
-        <nav class="navbar">
-            {% with request.path as current_path %}
-                <a href="{% url 'home' %}" class="{% if current_path == '/users/home/' %}active{% endif %}">Home</a>
-                <a href="{% url 'educationalsection' %}" class="{% if current_path == '/users/educationalsection/' %}active{% endif %}">Educational</a>
-                <a href="{% url 'activities' %}" class="{% if current_path == '/users/activities/' %}active{% endif %}">Activities</a>
-                <a href="{% url 'find_minasa' %}" class="{% if current_path == '/users/find-minasa/' %}active{% endif %}">Find Minasa Products</a>
-                <a href="{% url 'festival_calendar' %}" class="{% if current_path == '/users/festival-calendar/' %}active{% endif %}">Festival Calendar</a>
-                <a href="{% url 'growth_timeline' %}" class="{% if current_path == '/users/growth-timeline/' %}active{% endif %}">Growth Timeline</a>
-                <!-- <a href="{% url 'profile' %}" class="{% if current_path == '/users/profile/' %}active{% endif %}">Profile</a> -->
-                <a href="{% url 'about' %}" class="{% if current_path == '/users/about/' %}active{% endif %}">About</a>
-            {% endwith %}
-        </nav>
-        <a href="{% url 'profile' %}" class="nav-profile-pic">
-            <img src="{% if user.profile.image %}{{ user.profile.image.url }}{% else %}{{ MEDIA_URL }}images/user.png{% endif %}" alt="Profile Picture">
-        </a>
-    </div>
+    {% with request.resolver_match.url_name as current_name %}
+    <header class="site-header">
+        <div class="nav-container">
+            <a class="brand" href="{% url 'home' %}">
+                <span class="brand-mark">MINASA</span>
+                <span class="brand-sub">E-Learning</span>
+            </a>
+            <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false" onclick="document.body.classList.toggle('nav-open'); this.setAttribute('aria-expanded', document.body.classList.contains('nav-open'))">
+                <span></span><span></span><span></span>
+            </button>
+            <nav class="nav-links">
+                <a href="{% url 'home' %}" class="{% if current_name == 'home' %}active{% endif %}">Home</a>
+                <a href="{% url 'educationalsection' %}" class="{% if current_name == 'educationalsection' %}active{% endif %}">Educational</a>
+                <a href="{% url 'activities' %}" class="{% if current_name == 'activities' %}active{% endif %}">Activities</a>
+                <a href="{% url 'find_minasa' %}" class="{% if current_name == 'find_minasa' %}active{% endif %}">Find Minasa</a>
+                <a href="{% url 'festival_calendar' %}" class="{% if current_name == 'festival_calendar' %}active{% endif %}">Festival Calendar</a>
+                <a href="{% url 'growth_timeline' %}" class="{% if current_name == 'growth_timeline' %}active{% endif %}">Growth Timeline</a>
+                <a href="{% url 'about' %}" class="{% if current_name == 'about' %}active{% endif %}">About</a>
+            </nav>
+            <a href="{% url 'profile' %}" class="nav-profile-pic">
+                <img src="{% if user.profile.image %}{{ user.profile.image.url }}{% else %}{{ MEDIA_URL }}images/user.png{% endif %}" alt="Profile Picture">
+            </a>
+        </div>
+    </header>
+    {% endwith %}
 
     {% block content %}{% endblock %}
+    <script>
+    (function(){
+        var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var defaultSelectors = [
+            'section', '.feature', '.feature .feature-text', '.feature .feature-img',
+            '.community-item', '.sectionholder', '.profile-container',
+            '.profile-top-card', '.profile-details-card', '.festival-card',
+            '.about-section > *', '.mission-section > *'
+        ];
+        function $all(sel){ return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+        function prepareElements(){
+            var manual = $all('[data-reveal]');
+            var auto = defaultSelectors.flatMap(function(s){ return $all(s); });
+            var targets = Array.from(new Set([].concat(manual, auto)));
+            targets.forEach(function(el){
+                if(!el.classList.contains('reveal-visible')){
+                    el.classList.add('reveal');
+                }
+            });
+            // Stagger common card/group lists
+            [
+                '.community-cards', '.calendar-container', '.about-section', '.feature-section'
+            ].forEach(function(containerSel){
+                $all(containerSel).forEach(function(container){
+                    var children = container.children ? Array.from(container.children) : [];
+                    children.forEach(function(child, idx){
+                        if(child.classList && child.classList.contains('reveal')){
+                            child.style.transitionDelay = (idx * 80) + 'ms';
+                        }
+                    });
+                });
+            });
+            return targets;
+        }
+        function run(){
+            if(prefersReduced){
+                // Show immediately for reduced motion
+                prepareElements().forEach(function(el){ el.classList.add('reveal-visible'); });
+                return;
+            }
+            var elements = prepareElements();
+            var io = new IntersectionObserver(function(entries){
+                entries.forEach(function(entry){
+                    if(entry.isIntersecting){
+                        entry.target.classList.add('reveal-visible');
+                        io.unobserve(entry.target);
+                    }
+                });
+            }, { root: null, threshold: 0.12, rootMargin: '0px 0px -10% 0px' });
+            elements.forEach(function(el){ io.observe(el); });
+        }
+        if(document.readyState === 'loading'){
+            document.addEventListener('DOMContentLoaded', run);
+        } else { run(); }
+    })();
+    </script>
 </body>
 </html>

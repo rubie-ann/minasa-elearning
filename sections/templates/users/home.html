@@ -9,9 +9,9 @@
 <style>
     .hero {
         position: relative;
-        top: 50px;
-        z-index: 100;
-        height: 90vh;
+        top: 0;
+        z-index: 0;
+        min-height: 80vh;
         background: url('{% static "images/fest2.jpg" %}') center/cover no-repeat;
         display: flex;
         align-items: center;
@@ -19,63 +19,79 @@
         color: #fff;
         text-align: center;
     }
+    .hero .hero-cta a {
+        display: inline-block;
+        background: linear-gradient(135deg, #fbbf24, #f97316);
+        color: #fff;
+        padding: 10px 22px;
+        border-radius: 999px;
+        text-decoration: none;
+        font-weight: 700;
+        margin: 12px 8px 0 8px;
+        transition: transform .2s ease, filter .2s ease;
+    }
+    .hero .hero-cta a:hover { transform: translateY(-1px); filter: brightness(0.95); }
 </style>
 
 <!-- HERO SECTION -->
-<section class="hero">
+<section class="hero" data-reveal="scale">
     <div class="hero-content">
-        <h1>Minasa E-Learning</h1>
-        <p>Where stories, culture, and learning intertwine — experience the evolution of Minasa through knowledge and discovery.</p>
+        <h1 data-reveal>Minasa E-Learning</h1>
+        <p data-reveal="up">Where stories, culture, and learning intertwine — experience the evolution of Minasa through knowledge and discovery.</p>
+        <div class="hero-cta" data-reveal>
+            <a href="{% url 'educationalsection' %}">Explore Learning</a>
+            <a href="{% url 'activities' %}">Try Activities</a>
+        </div>
     </div>
 </section>
 
 <!-- KNOWLEDGE -->
 <section class="feature-section">
     <div class="feature">
-        <div class="feature-text">
+        <div class="feature-text" data-reveal="left">
             <h2>Stories Worth Learning</h2>
             <p>Dive into a collection of knowledge that unfolds the story behind Minasa — its beginnings, culture, and the heart that sustains it. Discover materials that inspire awareness and appreciation.</p>
             <a href="{% url 'educationalsection' %}">Discover</a>
         </div>
-        <div class="feature-img">
+        <div class="feature-img" data-reveal="right">
             <img src='{% static "images/fest4.jpg" %}' alt="Knowledge and Learning">
         </div>
     </div>
 
     <!-- ACTIVITIES -->
     <div class="feature reverse">
-        <div class="feature-text">
+        <div class="feature-text" data-reveal="right">
             <h2>Engage Through Play</h2>
             <p>Challenge your knowledge and have fun while learning. Explore interactive experiences that keep curiosity alive and bring the Minasa story closer to you.</p>
             <a href="{% url 'activities' %}">Get Started</a>
         </div>
-        <div class="feature-img">
+        <div class="feature-img" data-reveal="left">
             <img src='{% static "images/minasa-cookie2.jpg" %}' alt="Activities and Games">
         </div>
     </div>
 
     <!-- ABOUT -->
     <div class="feature reverse">
-        <div class="feature-text">
+        <div class="feature-text" data-reveal="right">
             <h2>The Heart Behind It All</h2>
             <p>Learn about the story and purpose that inspired the creation of this system — connecting people, culture, and knowledge in one meaningful space.</p>
             <a href="{% url 'about' %}">Learn More</a>
         </div>
-        <div class="feature-img">
+        <div class="feature-img" data-reveal="left">
             <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1000&q=80" alt="About Minasa System">
         </div>
     </div>
 </section>
 
 <section class="community-showcase">
-    <div class="community-header">
+    <div class="community-header" data-reveal>
         <h2>Connect, Explore, and Grow</h2>
         <p>Be part of Minasa’s continuing story — where discovery meets culture, and community sparks learning.</p>
     </div>
 
     <div class="community-cards">
         <!-- Find Minasa Products -->
-        <div class="community-item">
+        <div class="community-item" data-reveal>
             <img src='{% static "images/minasa-prod.jpg" %}' alt="Find Minasa Products">
             <div class="community-info">
                 <h3>Find Minasa Near You</h3>
@@ -85,7 +101,7 @@
         </div>
 
         <!-- Festival Calendar -->
-        <div class="community-item">
+        <div class="community-item" data-reveal>
             <img src='{% static "images/fest3.jpg" %}' alt="Festival Calendar">
             <div class="community-info">
                 <h3>Celebrate with Us</h3>
@@ -95,7 +111,7 @@
         </div>
 
         <!-- Growth Timeline -->
-        <div class="community-item">
+        <div class="community-item" data-reveal>
             <img src='{% static "images/arrowroot-plant.png" %}' alt="Growth Timeline">
             <div class="community-info">
                 <h3>See How We’ve Grown</h3>
