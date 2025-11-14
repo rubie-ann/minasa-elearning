@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm
-from .models import Section, Category, Quiz, Question, Answer, MinasaProduct, MinigameLevel
+from .models import Section, Category, Quiz, Question, Answer, MinasaProduct, MinigameLevel, QuizAttempt, MinigameAttempt
 from collections import defaultdict
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import AuthenticationForm
@@ -24,6 +24,8 @@ from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from io import BytesIO
 from django.contrib.auth.models import User
+from django.utils import timezone
+from django.views.decorators.http import require_http_methods
 
 
 
@@ -167,6 +169,45 @@ def user_management(request):
         # Redirect non-admin, non-superuser users
         return redirect('home')
 
+
+@login_required
+def user_performance(request):
+    """Admin page to show user performance metrics with quiz and minigame data."""
+    if request.user.username == 'admin' or request.user.is_superuser:
+        all_users = User.objects.all().order_by('-date_joined')
+        
+        # Build user performance data
+        user_performance_data = []
+        for user in all_users:
+            # Get quiz attempts
+            quiz_attempts = QuizAttempt.objects.filter(user=user)
+            quizzes_completed = quiz_attempts.values('quiz').distinct().count()
+            quiz_count = Quiz.objects.count()
+            
+            # Get minigame attempts
+            minigame_attempts = MinigameAttempt.objects.filter(user=user, completed=True)
+            minigames_completed = minigame_attempts.count()
+            minigame_count = MinigameLevel.objects.count()
+            
+            user_performance_data.append({
+                'user': user,
+                'quizzes_completed': quizzes_completed,
+                'quiz_count': quiz_count,
+                'minigames_completed': minigames_completed,
+                'minigame_count': minigame_count,
+            })
+        
+        context = {
+            'all_users': all_users,
+            'user_performance_data': user_performance_data,
+            'total_users': User.objects.count(),
+            'active_users': User.objects.filter(is_active=True).count(),
+            'blocked_users': sum(1 for u in all_users if hasattr(u, 'profile') and u.profile.is_blocked()),
+        }
+        return render(request, 'adminpage/userperformance.html', context)
+    else:
+        return redirect('home')
+
 @login_required
 def admin_dashboard(request):
     # Allow admin user access regardless of superuser status
@@ -208,11 +249,58 @@ def search_view(request):
     return render(request, 'users/search.html')
 
 def activities_view(request):
-    quizzes = Quiz.objects.all().order_by('-created_at')
-    minigame_levels = MinigameLevel.objects.all().order_by('-created_at')
+    quizzes = list(Quiz.objects.all().order_by('created_at'))
+    minigame_levels = list(MinigameLevel.objects.all().order_by('created_at'))
+
+    user = request.user if request.user.is_authenticated else None
+
+    # Build quizzes_data: {'quiz': Quiz, 'index': n, 'unlocked': bool, 'last_score': int|None, 'completed': bool}
+    quizzes_data = []
+    prev_completed = True  # first quiz unlocked by default
+    for idx, quiz in enumerate(quizzes, start=1):
+        last_score = None
+        completed = False
+        if user:
+            last_attempt = QuizAttempt.objects.filter(user=user, quiz=quiz).order_by('-completed_at').first()
+            if last_attempt:
+                last_score = last_attempt.score
+                # Consider any attempt as completion for progression; change logic if pass threshold required
+                completed = True
+
+        unlocked = prev_completed
+        quizzes_data.append({
+            'quiz': quiz,
+            'index': idx,
+            'unlocked': unlocked,
+            'last_score': last_score,
+            'completed': completed,
+        })
+        prev_completed = completed
+
+    # Build minigame_data: similar progression
+    minigame_data = []
+    prev_completed = True
+    for idx, level in enumerate(minigame_levels, start=1):
+        completed = False
+        if user:
+            att = MinigameAttempt.objects.filter(user=user, level=level, completed=True).first()
+            if att:
+                completed = True
+
+        unlocked = prev_completed
+        minigame_data.append({
+            'level': level,
+            'index': idx,
+            'unlocked': unlocked,
+            'completed': completed,
+        })
+        prev_completed = completed
+
     context = {
         'quizzes': quizzes,
         'minigame_levels': minigame_levels,
+        'quizzes_data': quizzes_data,
+        'minigame_data': minigame_data,
     }
     return render(request, 'users/activities.html', context)
 
@@ -914,16 +1002,96 @@ def quiz_api(request, quiz_id):
 
     return JsonResponse(quiz_data)
 
+
+@login_required
+@require_http_methods(["POST"])
+def save_quiz_attempt(request, quiz_id):
+    """Save user's quiz attempt"""
+    import json
+    
+    try:
+        data = json.loads(request.body)
+        quiz = get_object_or_404(Quiz, id=quiz_id)
+        
+        # Calculate score
+        score = data.get('score', 0)
+        total_questions = data.get('total_questions', 0)
+        
+        # Save the attempt
+        attempt = QuizAttempt.objects.create(
+            user=request.user,
+            quiz=quiz,
+            score=score,
+            total_questions=total_questions
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Quiz attempt saved successfully',
+            'attempt_id': attempt.id
+        })
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+
+@login_required
+@require_http_methods(["POST"])
+def save_minigame_attempt(request, level_id):
+    """Save user's minigame level attempt"""
+    import json
+    
+    try:
+        data = json.loads(request.body)
+        level = get_object_or_404(MinigameLevel, id=level_id)
+        
+        completed = data.get('completed', False)
+        
+        # Get or create the attempt
+        attempt, created = MinigameAttempt.objects.get_or_create(
+            user=request.user,
+            level=level
+        )
+        
+        # Update the attempt
+        if completed:
+            attempt.completed = True
+            attempt.completed_at = timezone.now()
+        
+        attempt.attempts_count = data.get('attempts_count', attempt.attempts_count + 1)
+        attempt.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Minigame attempt saved successfully',
+            'attempt_id': attempt.id
+        })
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
 def signup(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        from .forms import CustomUserCreationForm
+        form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)
-            return redirect('home')
+            # Return success context instead of redirecting
+            new_form = CustomUserCreationForm()
+            return render(request, 'registration/signup.html', {
+                'form': new_form,
+                'success': True,
+                'success_message': f'Account created successfully! Your account is now ready. Please log in with your credentials.'
+            })
+        else:
+            # Show form with errors
+            return render(request, 'registration/signup.html', {'form': form, 'success': False})
     else:
-        form = UserCreationForm()
-    return render(request, 'registration/signup.html', {'form': form})
+        from .forms import CustomUserCreationForm
+        form = CustomUserCreationForm()
+    return render(request, 'registration/signup.html', {'form': form, 'success': False})
 
 def find_minasa(request):
     # Retrieve all Minasa products from the database
@@ -940,7 +1108,7 @@ def admin_minigame(request):
     if request.user.username == 'admin' or request.user.is_superuser:
         from .models import MinigameLevel
         from .forms import MinigameLevelForm
-        levels = MinigameLevel.objects.all().order_by('-created_at')
+        levels = MinigameLevel.objects.all().order_by('id')
         form = MinigameLevelForm()
         context = {
             'levels': levels,

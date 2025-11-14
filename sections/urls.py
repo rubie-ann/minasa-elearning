@@ -33,6 +33,9 @@ urlpatterns = [
     path('quiz/<int:quiz_id>/edit/', views.quiz_edit, name='quiz-edit'),
     path('quiz/<int:quiz_id>/delete/', views.quiz_delete, name='quiz-delete'),
     path('api/quiz/<int:quiz_id>/', views.quiz_api, name='quiz-api'),
+    # Save attempt endpoints (called from activities page JS)
+    path('api/quiz/<int:quiz_id>/save-attempt/', views.save_quiz_attempt, name='quiz-save-attempt'),
+    path('api/minigame/<int:level_id>/save-attempt/', views.save_minigame_attempt, name='minigame-save-attempt'),
     path('get_minigame_level_data/<int:level_id>/', views.get_minigame_level_data, name='get_minigame_level_data'),
     path('growth-timeline/', views.growth_timeline, name='growth_timeline'),
 ]

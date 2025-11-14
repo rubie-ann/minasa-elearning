@@ -27,6 +27,7 @@ urlpatterns = [
     path('adminpage/admin-dashboard/', views.admin_dashboard, name='adminpage-admin-dashboard'),
     path('adminpage/minasa-products/', views.adminpage_minasa_products, name='adminpage-minasa-products'),
     path('adminpage/user-management/', views.user_management, name='adminpage-user-management'),
+    path('adminpage/user-performance/', views.user_performance, name='adminpage-user-performance'),
     path('adminpage/content-manager/', views.content_manager, name='adminpage-content-manager'),
     path('adminpage/category-manager/', views.category_manager, name='adminpage-category-manager'),
     path('adminpage/activities/', views.adminpage_activities, name='adminpage-activities'),
@@ -44,6 +45,9 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('generate-report/', views.generate_content_report, name='generate_content_report'),
     path('generate-user-report/', views.generate_user_report, name='generate_user_report'),
+    # API endpoints for saving quiz and minigame attempts
+    path('api/quiz/<int:quiz_id>/save-attempt/', views.save_quiz_attempt, name='save_quiz_attempt'),
+    path('api/minigame/<int:level_id>/save-attempt/', views.save_minigame_attempt, name='save_minigame_attempt'),
 ]
 
 if settings.DEBUG:

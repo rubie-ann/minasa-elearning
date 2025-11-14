@@ -1,49 +1,365 @@
-{% extends "users/base.html" %}
-
-{% block title %}Sign Up{% endblock %}
-
-{% block content %}
-<div class="auth-container">
-    <div class="auth-card">
-        <div class="auth-header">
-            <h1> Minasa E-Learning</h1>
-            <h2>Create account</h2>
-            <p class="auth-subtitle">Join us to get started</p>
-        </div>
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minasa E-Learning - Sign Up</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #faf9f4;
+    }
+    .container {
+      display: flex;
+      height: 100vh;
+    }
+    .left {
+      flex: 1;
+      background: #d4a574;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+    .left img {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+      object-fit: cover;
+    }
+    .left h1 {
+      font-size: 40px;
+      color: #5c3d1f;
+      margin: 0;
+      text-align: center;
+      font-family: 'Georgia', serif;
+      letter-spacing: 2px;
+      font-weight: bold;
+    }
+    .left p {
+      font-size: 14px;
+      color: #7a5c3d;
+      text-align: center;
+      margin-top: 15px;
+    }
+    .right {
+      flex: 1;
+      background: #faf9f4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      overflow-y: auto;
+    }
+    .signup-box {
+      width: 100%;
+      max-width: 400px;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      padding: 45px 35px;
+    }
+    .signup-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: #5c3d1f;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .signup-subtitle {
+      font-size: 14px;
+      color: #999;
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .input-group {
+      position: relative;
+      margin-bottom: 20px;
+    }
+    .input-group input {
+      width: 100%;
+      padding: 14px 16px 14px 45px;
+      border: 1.5px solid #d4a574;
+      border-radius: 7px;
+      font-size: 15px;
+      outline: none;
+      background: #faf9f4;
+      transition: border 0.3s, box-shadow 0.3s;
+    }
+    .input-group input:focus {
+      border: 1.5px solid #5c3d1f;
+      box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.1);
+    }
+    .input-group .fa {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #d4a574;
+      font-size: 17px;
+    }
+    .signup-btn {
+      width: 100%;
+      background: #d4a574;
+      color: #5c3d1f;
+      border: 1.5px solid #d4a574;
+      border-radius: 7px;
+      padding: 14px 0;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 12px;
+      transition: background 0.3s, color 0.3s, transform 0.1s;
+    }
+    .signup-btn:hover {
+      background: #5c3d1f;
+      color: #fff;
+      transform: translateY(-2px);
+    }
+    .signup-btn:active {
+      transform: translateY(0);
+    }
+    .error-message {
+      color: #dc3545;
+      font-size: 13px;
+      margin-top: 8px;
+      display: block;
+    }
+    .auth-footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+      color: #666;
+    }
+    .auth-footer a {
+      color: #5c3d1f;
+      font-weight: 600;
+      text-decoration: none;
+      margin-left: 6px;
+    }
+    .auth-footer a:hover {
+      text-decoration: underline;
+    }
+    .success-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    .success-modal.show {
+      display: flex;
+    }
+    .success-modal-content {
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      max-width: 400px;
+      animation: slideIn 0.3s ease-out;
+    }
+    @keyframes slideIn {
+      from {
+        transform: translateY(-30px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+    .success-modal-icon {
+      font-size: 60px;
+      color: #28a745;
+      margin-bottom: 20px;
+    }
+    .success-modal-title {
+      font-size: 24px;
+      color: #5c3d1f;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .success-modal-message {
+      font-size: 15px;
+      color: #666;
+      margin-bottom: 25px;
+      line-height: 1.5;
+    }
+    .success-modal-btn {
+      background: #d4a574;
+      color: #5c3d1f;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .success-modal-btn:hover {
+      background: #5c3d1f;
+      color: white;
+    }
+    .help-text {
+      display: none;
+    }
+    ul {
+      display: none;
+    }
+    li {
+      display: none;
+    }
+    .errorlist {
+      display: none;
+    }
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+      .left {
+        flex: 0;
+        padding: 30px 20px;
+        min-height: auto;
+      }
+      .left h1 {
+        font-size: 28px;
+      }
+      .left img {
+        width: 120px;
+        height: 120px;
+        margin-bottom: 20px;
+      }
+      .right {
+        flex: 1;
+        padding: 30px 20px;
+      }
+      .signup-box {
+        max-width: 100%;
+        padding: 35px 25px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="left">
+      <img src="{% static 'images/logo.png' %}" alt="Minasa Festival Logo">
+      <h1>MINASA<br>E-Learning</h1>
+      <p>Join our community today</p>
+    </div>
+    <div class="right">
+      <div class="signup-box">
+        <div class="signup-title">Create Account</div>
+        <div class="signup-subtitle">Join us to get started</div>
         
-        <form method="post" class="auth-form">
-            {% csrf_token %}
-            
-            <div class="form-group">
-                <label for="{{ form.username.id_for_label }}">Username</label>
-                {{ form.username }}
-                {% if form.username.errors %}
-                    <span class="error-message">{{ form.username.errors.0 }}</span>
-                {% endif %}
-            </div>
-            
-            <div class="form-group">
-                <label for="{{ form.password1.id_for_label }}">Password</label>
-                {{ form.password1 }}
-                {% if form.password1.errors %}
-                    <span class="error-message">{{ form.password1.errors.0 }}</span>
-                {% endif %}
-            </div>
-            
-            <div class="form-group">
-                <label for="{{ form.password2.id_for_label }}">Confirm Password</label>
-                {{ form.password2 }}
-                {% if form.password2.errors %}
-                    <span class="error-message">{{ form.password2.errors.0 }}</span>
-                {% endif %}
-            </div>
-            
-            <button type="submit" class="btn-primary">Create account</button>
+        <form method="post" id="signupForm">
+          {% csrf_token %}
+          
+          {% if form.non_field_errors %}
+            <div class="alert-error">{{ form.non_field_errors }}</div>
+          {% endif %}
+          
+          <div class="input-group">
+            <i class="fa fa-user"></i>
+            <input type="text" name="username" id="id_username" placeholder="Username" required>
+            {% if form.username.errors %}
+              <span class="error-message">{{ form.username.errors.0 }}</span>
+            {% endif %}
+            {% if form.username.help_text %}
+              <div class="help-text" style="display: none;">{{ form.username.help_text|safe }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="input-group">
+            <i class="fa fa-id-card"></i>
+            <input type="text" name="first_name" id="id_first_name" placeholder="First Name">
+          </div>
+          
+          <div class="input-group">
+            <i class="fa fa-id-card"></i>
+            <input type="text" name="last_name" id="id_last_name" placeholder="Last Name">
+          </div>
+          
+          <div class="input-group">
+            <i class="fa fa-lock"></i>
+            <input type="password" name="password1" id="id_password1" placeholder="Password" required>
+            {% if form.password1.errors %}
+              <div class="error-message" style="display: none;">
+                {% for error in form.password1.errors %}
+                  {{ error }}<br>
+                {% endfor %}
+              </div>
+            {% endif %}
+            {% if form.password1.help_text %}
+              <div class="help-text" style="display: none;">{{ form.password1.help_text|safe }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="input-group">
+            <i class="fa fa-lock"></i>
+            <input type="password" name="password2" id="id_password2" placeholder="Confirm Password" required>
+            {% if form.password2.errors %}
+              <div class="error-message" style="display: none;">
+                {% for error in form.password2.errors %}
+                  {{ error }}<br>
+                {% endfor %}
+              </div>
+            {% endif %}
+            {% if form.password2.help_text %}
+              <div class="help-text" style="display: none;">{{ form.password2.help_text|safe }}</div>
+            {% endif %}
+          </div>
+          
+          <button type="submit" class="signup-btn">Create Account</button>
         </form>
         
         <div class="auth-footer">
-            <p>Already have an account? <a href="{% url 'login' %}">Sign in</a></p>
+          <span>Already have an account?</span>
+          <a href="{% url 'login' %}">Sign In</a>
         </div>
+      </div>
     </div>
-</div>
-{% endblock %}
+  </div>
+
+  <!-- Success Modal -->
+  <div class="success-modal {% if success %}show{% endif %}" id="successModal">
+    <div class="success-modal-content">
+      <div class="success-modal-icon">
+        <i class="fa fa-check-circle"></i>
+      </div>
+      <div class="success-modal-title">Account Created Successfully!</div>
+      <div class="success-modal-message">
+        {% if success_message %}
+          {{ success_message }}
+        {% else %}
+          Your account has been created. Please log in to continue.
+        {% endif %}
+      </div>
+      <button class="success-modal-btn" onclick="goToLogin()">Go to Login</button>
+    </div>
+  </div>
+
+  <script>
+    function goToLogin() {
+      window.location.href = "{% url 'login' %}";
+    }
+  </script>
+</body>
+</html>

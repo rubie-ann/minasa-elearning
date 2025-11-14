@@ -327,39 +327,69 @@
        background: #f8f9fa !important;
        transform: scale(1.05);
    }
+
+    /* Locked card overlay */
+    .card-locked-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(255,255,255,0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 15px;
+        font-weight: bold;
+        color: #6c757d;
+        gap: 8px;
+        flex-direction: column;
+    }
+    .quiz-card-wrapper { position: relative; }
 </style>
 
 <div class="quiz-page">
     <div class="container">
+        <form id="csrfForm" style="display:none;">{% csrf_token %}</form>
         <!-- Quizzes Section -->
         <h1 class="quiz-title">QUIZZES</h1>
 
-        {% if quizzes %}
+        {% if quizzes_data %}
             <div class="row">
-                {% for quiz in quizzes %}
+                {% for item in quizzes_data %}
                     <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="quiz-card-wrapper">
                         <div class="quiz-card">
                             <div class="quiz-card-header">
-                                {{ quiz.title }}
+                                Quiz {{ item.index }}: {{ item.quiz.title }}
                             </div>
                             <div class="quiz-card-body">
                                 <p class="quiz-description">
-                                    {{ quiz.description|truncatechars:100|default:"No description available" }}
+                                    {{ item.quiz.description|truncatechars:100|default:"No description available" }}
                                 </p>
                                 <div class="quiz-meta">
                                     <div class="quiz-meta-item">
                                         <span class="quiz-meta-label">Questions</span>
-                                        <span class="quiz-meta-value">{{ quiz.questions.count }}</span>
+                                        <span class="quiz-meta-value">{{ item.quiz.questions.count }}</span>
                                     </div>
                                     <div class="quiz-meta-item">
                                         <span class="quiz-meta-label">Created</span>
-                                        <span class="quiz-meta-value">{{ quiz.created_at|date:"M d" }}</span>
+                                        <span class="quiz-meta-value">{{ item.quiz.created_at|date:"M d" }}</span>
+                                    </div>
+                                    <div class="quiz-meta-item">
+                                        <span class="quiz-meta-label">Last Score</span>
+                                        <span class="quiz-meta-value quiz-meta-score">{% if item.last_score %}{{ item.last_score }}/{{ item.quiz.questions.count }}{% else %}-{% endif %}</span>
                                     </div>
                                 </div>
-                                <button class="btn-take-quiz" onclick="startQuiz({{ quiz.id }})">
-                                    Take Quiz
+                                <button class="btn-take-quiz" data-quiz-id="{{ item.quiz.id }}" data-unlocked="{{ item.unlocked|yesno:'1,0' }}" {% if not item.unlocked %}disabled{% endif %} onclick="startQuiz({{ item.quiz.id }})">
+                                    {% if item.unlocked %}Take Quiz{% else %}Locked{% endif %}
                                 </button>
                             </div>
+                        </div>
+                        {% if not item.unlocked %}
+                            <div class="card-locked-overlay">
+                                <i class="fas fa-lock" style="font-size: 1.6rem;"></i>
+                                <div>Locked</div>
+                                <small>Complete previous quiz to unlock</small>
+                            </div>
+                        {% endif %}
                         </div>
                     </div>
                 {% endfor %}
@@ -373,13 +403,14 @@
         <!-- Minigame Levels Section -->
         <h1 class="quiz-title" style="margin-top: 80px;">MINIGAME LEVELS</h1>
 
-        {% if minigame_levels %}
+        {% if minigame_data %}
             <div class="row">
-                {% for level in minigame_levels %}
+                {% for item in minigame_data %}
                     <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="quiz-card-wrapper">
                         <div class="quiz-card">
                             <div class="quiz-card-header">
-                                Level {{ level.id }}
+                                {{ item.index }}
                             </div>
                             <div class="quiz-card-body">
                                 <p class="quiz-description">
@@ -388,19 +419,29 @@
                                 <div class="quiz-meta">
                                     <div class="quiz-meta-item">
                                         <span class="quiz-meta-label">Images</span>
-                                        <span class="quiz-meta-value">
-                                            4
-                                        </span>
+                                        <span class="quiz-meta-value">4</span>
                                     </div>
                                     <div class="quiz-meta-item">
                                         <span class="quiz-meta-label">Created</span>
-                                        <span class="quiz-meta-value">{{ level.created_at|date:"M d" }}</span>
+                                        <span class="quiz-meta-value">{{ item.level.created_at|date:"M d" }}</span>
+                                    </div>
+                                    <div class="quiz-meta-item">
+                                        <span class="quiz-meta-label">Status</span>
+                                        <span class="quiz-meta-value">{% if item.completed %}Completed{% else %}-{% endif %}</span>
                                     </div>
                                 </div>
-                                <button class="btn-take-quiz" onclick="startMinigame({{ level.id }})">
-                                    Play Level
+                                <button class="btn-take-quiz" data-level-id="{{ item.level.id }}" data-unlocked="{{ item.unlocked|yesno:'1,0' }}" {% if not item.unlocked %}disabled{% endif %} onclick="startMinigame({{ item.level.id }})">
+                                    {% if item.unlocked %}Play Level{% else %}Locked{% endif %}
                                 </button>
                             </div>
+                        </div>
+                        {% if not item.unlocked %}
+                            <div class="card-locked-overlay">
+                                <i class="fas fa-lock" style="font-size: 1.6rem;"></i>
+                                <div>Locked</div>
+                                <small>Complete previous level to unlock</small>
+                            </div>
+                        {% endif %}
                         </div>
                     </div>
                 {% endfor %}
@@ -457,11 +498,19 @@
 {% verbatim %}
 <script>
 let currentQuizId = null;
+let currentMinigameLevelId = null;
 let currentQuestions = [];
 let userAnswers = {};
 let currentMinigameAnswer = null;
 
 function startQuiz(quizId) {
+    // Prevent starting locked quiz
+    const btn = document.querySelector(`[data-quiz-id="${quizId}"]`);
+    if (btn && btn.getAttribute('data-unlocked') === '0') {
+        alert('This quiz is locked. Complete the previous quiz to unlock.');
+        return;
+    }
+
     currentQuizId = quizId;
     userAnswers = {};
 
@@ -538,8 +587,75 @@ document.getElementById('submitQuizBtn').addEventListener('click', function() {
     });
 
     const score = Math.round((correctAnswers / currentQuestions.length) * 100);
+    
+    // Save quiz attempt to database
+    saveQuizAttempt(correctAnswers, currentQuestions.length);
+    
     displayResults(correctAnswers, currentQuestions.length, score);
 });
+
+function saveQuizAttempt(score, totalQuestions) {
+    fetch(`/users/api/quiz/${currentQuizId}/save-attempt/`, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({
+            score: score,
+            total_questions: totalQuestions
+        })
+    })
+    .then(response => {
+        // Always read the response as text first to guard against HTML (login/403 pages)
+        return response.text().then(text => ({ status: response.status, ok: response.ok, text: text, headers: response.headers }));
+    })
+    .then(({ status, ok, text, headers }) => {
+        const ct = headers.get('content-type') || '';
+        if (!ok) {
+            console.error('Quiz save HTTP error', status, text);
+            throw new Error(`HTTP ${status}: ${text}`);
+        }
+        // try to parse JSON safely
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('Failed to parse JSON response for quiz save:', text);
+            throw new Error('Invalid JSON response');
+        }
+    })
+    .then(data => {
+        if (data.success) {
+            console.log('Quiz attempt saved successfully');
+            // Update UI: set last score on the quiz card and unlock next quiz
+            const btn = document.querySelector(`[data-quiz-id="${currentQuizId}"]`);
+                if (btn) {
+                const wrapper = btn.closest('.quiz-card-wrapper');
+                const scoreEl = wrapper.querySelector('.quiz-meta-score');
+                if (scoreEl) scoreEl.textContent = score + '/' + totalQuestions;
+
+                // mark as completed and unlock next
+                // find all quiz buttons and unlock the next one
+                const all = Array.from(document.querySelectorAll('[data-quiz-id]'));
+                const idx = all.indexOf(btn);
+                if (idx >= 0 && idx + 1 < all.length) {
+                    const nextBtn = all[idx + 1];
+                    nextBtn.removeAttribute('disabled');
+                    nextBtn.setAttribute('data-unlocked', '1');
+                    const nextWrapper = nextBtn.closest('.quiz-card-wrapper');
+                    const overlay = nextWrapper.querySelector('.card-locked-overlay');
+                    if (overlay) overlay.remove();
+                }
+            }
+        } else {
+            console.error('Error saving quiz attempt:', data.error);
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
 
 function displayResults(correct, total, score) {
     const quizContent = document.getElementById('quizContent');
@@ -583,11 +699,24 @@ function displayResults(correct, total, score) {
     });
 
     html += '</div>';
+    // Add Done button to close the quiz modal
+    html += '<div style="text-align:center; margin-top: 20px;">'
+         + '<button class="btn-submit" onclick="closeQuizModal()">Done</button>'
+         + '</div>';
+
     quizContent.innerHTML = html;
     document.getElementById('submitQuizBtn').style.display = 'none';
 }
 
 function startMinigame(levelId) {
+    // Prevent starting locked level
+    const btn = document.querySelector(`[data-level-id="${levelId}"]`);
+    if (btn && btn.getAttribute('data-unlocked') === '0') {
+        alert('This level is locked. Complete the previous level to unlock.');
+        return;
+    }
+
+    currentMinigameLevelId = levelId;
     fetch(`/users/get_minigame_level_data/${levelId}/`)
         .then(response => response.json())
         .then(data => {
@@ -750,6 +879,11 @@ function showMinigameResult(isCorrect) {
     let feedbackClass = isCorrect ? 'alert-success' : 'alert-danger';
     let feedbackMessage = isCorrect ? '🎉 Correct! Well done!' : '❌ Incorrect. Try again!';
 
+    // Save minigame attempt if correct
+    if (isCorrect) {
+        saveMinigameAttempt(true);
+    }
+
     let html = '<div class="results-header">' +
         '<h4>Result</h4>' +
         '<div class="alert ' + feedbackClass + '" style="border-radius: 15px; margin-top: 20px;">' +
@@ -762,6 +896,106 @@ function showMinigameResult(isCorrect) {
 
     minigameContent.innerHTML = html;
     document.getElementById('submitMinigameBtn').style.display = 'none';
+
+    // Add Done button below the result for closing the modal
+    const doneWrapper = document.createElement('div');
+    doneWrapper.style.textAlign = 'center';
+    doneWrapper.style.marginTop = '20px';
+    const doneBtn = document.createElement('button');
+    doneBtn.className = 'btn-submit';
+    doneBtn.textContent = 'Done';
+    doneBtn.addEventListener('click', closeMinigameModal);
+    doneWrapper.appendChild(doneBtn);
+    minigameContent.appendChild(doneWrapper);
+}
+
+// Helper to close quiz modal safely
+function closeQuizModal() {
+    const modalEl = document.getElementById('quizModal');
+    try {
+        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        modal.hide();
+    } catch (e) {
+        // Fallback: hide via jQuery-like class toggle if present
+        modalEl.classList.remove('show');
+        modalEl.style.display = 'none';
+    }
+}
+
+// Helper to close minigame modal safely
+function closeMinigameModal() {
+    const modalEl = document.getElementById('minigameModal');
+    try {
+        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        modal.hide();
+    } catch (e) {
+        modalEl.classList.remove('show');
+        modalEl.style.display = 'none';
+    }
+}
+
+function saveMinigameAttempt(completed) {
+    if (!currentMinigameLevelId) {
+        console.error('Could not determine level ID');
+        return;
+    }
+
+    fetch(`/users/api/minigame/${currentMinigameLevelId}/save-attempt/`, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({
+            completed: completed,
+            attempts_count: 1
+        })
+    })
+    .then(response => {
+        return response.text().then(text => ({ status: response.status, ok: response.ok, text: text, headers: response.headers }));
+    })
+    .then(({ status, ok, text, headers }) => {
+        const ct = headers.get('content-type') || '';
+        if (!ok) {
+            console.error('Minigame save HTTP error', status, text);
+            throw new Error(`HTTP ${status}: ${text}`);
+        }
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('Failed to parse JSON response for minigame save:', text);
+            throw new Error('Invalid JSON response');
+        }
+    })
+    .then(data => {
+        if (data.success) {
+            console.log('Minigame attempt saved successfully');
+            // Update UI: mark current level completed and unlock next
+            const btn = document.querySelector(`[data-level-id="${currentMinigameLevelId}"]`);
+            if (btn) {
+                const wrapper = btn.closest('.quiz-card-wrapper');
+                const statusEl = wrapper.querySelector('.quiz-meta .quiz-meta-item:nth-child(3) .quiz-meta-value');
+                if (statusEl) statusEl.textContent = 'Completed';
+
+                const all = Array.from(document.querySelectorAll('[data-level-id]'));
+                const idx = all.indexOf(btn);
+                if (idx >= 0 && idx + 1 < all.length) {
+                    const nextBtn = all[idx + 1];
+                    nextBtn.removeAttribute('disabled');
+                    nextBtn.setAttribute('data-unlocked', '1');
+                    const nextWrapper = nextBtn.closest('.quiz-card-wrapper');
+                    const overlay = nextWrapper.querySelector('.card-locked-overlay');
+                    if (overlay) overlay.remove();
+                }
+            }
+        } else {
+            console.error('Error saving minigame attempt:', data.error);
+        }
+    })
+    .catch(error => console.error('Error:', error));
 }
 
 

@@ -18,6 +18,190 @@
         margin: 0 !important;
         max-width: 100% !important;
     }
+
+    /* Card Layout */
+    .levels-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .level-card {
+        background: #ffffff;
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transition: transform 0.2s, box-shadow 0.2s;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .level-card-checkbox {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 10;
+    }
+
+    .level-card-checkbox input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        accent-color: #dc3545;
+    }
+
+    .level-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .level-card-header {
+        background: #abbccd;
+        color: white;
+        padding: 10px 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .level-card-header .level-id {
+        font-size: 0.875rem;
+        opacity: 0.9;
+        font-weight: 500;
+    }
+
+    .level-card-header .level-answer {
+        font-size: 15px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .level-card-body {
+        padding: 20px;
+    }
+
+    .level-images {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .level-image-item {
+        position: relative;
+        width: 100%;
+        padding-top: 100%;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+    }
+
+    .level-image-item img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .level-image-item .no-image {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #adb5bd;
+        font-size: 0.875rem;
+    }
+
+    .level-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-top: 1px solid #e9ecef;
+        border-bottom: 1px solid #e9ecef;
+        margin-bottom: 15px;
+    }
+
+    .level-info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .level-info-label {
+        font-size: 0.75rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+    }
+
+    .level-info-value {
+        font-size: 0.95rem;
+        color: #212529;
+        font-weight: 600;
+    }
+
+    .level-card-footer {
+        padding: 0 20px 20px 20px;
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+
+    .level-card-footer .btn {
+        flex: 1;
+        max-width: 120px;
+    }
+
+    /* Responsive Cards */
+    @media (max-width: 1400px) {
+        .levels-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @media (max-width: 1024px) {
+        .levels-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .levels-grid {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .level-card-header {
+            padding: 12px 15px;
+        }
+
+        .level-card-header .level-answer {
+            font-size: 1.1rem;
+        }
+
+        .level-card-body {
+            padding: 15px;
+        }
+
+        .level-images {
+            gap: 10px;
+        }
+
+        .level-card-footer {
+            flex-direction: column;
+        }
+
+        .level-card-footer .btn {
+            max-width: 100%;
+        }
+    }
 </style>
 <link rel="stylesheet" href="{% static 'css/adminside.css' %}">
 
@@ -31,6 +215,7 @@
     <ul class="admin-nav">
         <li><a href="{% url 'adminpage-admin-dashboard' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
         <li><a href="{% url 'adminpage-user-management' %}"><i class="fas fa-users"></i> User Management</a></li>
+        <li><a href="{% url 'adminpage-user-performance' %}"><i class="fas fa-users"></i> User Performance</a></li>
         <li><a href="{% url 'adminpage-content-manager' %}"><i class="fas fa-layer-group"></i> Content Manager</a></li>
         <li><a href="{% url 'adminpage-minasa-products' %}"><i class="fas fa-shopping-bag"></i> Minasa Products</a></li>
         <li class="nav-section active">
@@ -58,83 +243,93 @@
 <div class="admin-content">
     <div class="admin-header">
         <h1>Minigame Management</h1>
-        <p>Manage minigames for the Minasa E-Learning platform.</p>
     </div>
 
     <div class="admin-panels">
-        <div class="admin-panel">
-            <div class="panel-header">
-                <h3><i class="fas fa-plus-circle"></i> Add New Level</h3>
-            </div>
-            <div class="panel-content">
-                <p>Add a new level to the "4 Pics 1 Word" minigame. Each level requires 4 images and 1 correct answer.</p>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addLevelModal">
-                    <i class="fas fa-plus"></i> Add New Level
-                </button>
-            </div>
-        </div>
+        <!-- Add New Level button moved into the levels panel for a cleaner layout -->
 
         <div class="admin-panel">
             <div class="panel-header">
-                <h3><i class="fas fa-list"></i> Existing Levels ({{ total_levels }})</h3>
+                <!-- <h3><i class="fas fa-list"></i> Existing Levels ({{ total_levels }})</h3> -->
             </div>
             <div class="panel-content">
                 {% if levels %}
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Answer</th>
-                                    <th>Images</th>
-                                    <th>Attempts</th>
-                                    <th>Created</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+                    <div style="margin-bottom: 0px; display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 1400px;">
+                        <div style="display:flex; gap:10px; align-items:center;">
+                           
+                           <button type="button" style="width: 200px;margin-top: -0px;" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addLevelModal">
+                                <i class="fas fa-plus"></i> Add New Level
+                            </button>
+                            <button type="button" style="width: 200px;" class="btn btn-danger" id="deleteSelectedBtn" onclick="deleteSelectedLevels()">
+                                <i class="fas fa-trash"></i> Delete Selected
+                            </button>
+                                                   </div>
+                        <div>
+                            
+                        </div>
+                    </div>
+                    <div class="levels-grid">
                                 {% for level in levels %}
-                                <tr>
-                                    <td>{{ level.id }}</td>
-                                    <td><strong>{{ level.answer }}</strong></td>
-                                    <td>
-                                        <div class="d-flex gap-1">
+                        <div class="level-card">
+                            <div class="level-card-checkbox">
+                                <input type="checkbox" class="level-checkbox" value="{{ level.id }}" onchange="updateDeleteButton()">
+                            </div>
+                            <div class="level-card-header">
+                                <div class="level-id">Level #{{ forloop.counter }}</div>
+                                <div class="level-answer">{{ level.answer }}</div>
+                            </div>
+                            <div class="level-card-body">
+                                <div class="level-images">
+                                    <div class="level-image-item">
                                             {% if level.image1 %}
-                                                <img src="{{ level.image1.url }}" width="40" height="40" class="rounded" style="object-fit: cover;" title="Image 1">
+                                            <img src="{{ level.image1.url }}" alt="Image 1">
                                             {% else %}
-                                                <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">-</div>
+                                            <div class="no-image">-</div>
                                             {% endif %}
+                                    </div>
+                                    <div class="level-image-item">
                                             {% if level.image2 %}
-                                                <img src="{{ level.image2.url }}" width="40" height="40" class="rounded" style="object-fit: cover;" title="Image 2">
+                                            <img src="{{ level.image2.url }}" alt="Image 2">
                                             {% else %}
-                                                <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">-</div>
+                                            <div class="no-image">-</div>
                                             {% endif %}
+                                    </div>
+                                    <div class="level-image-item">
                                             {% if level.image3 %}
-                                                <img src="{{ level.image3.url }}" width="40" height="40" class="rounded" style="object-fit: cover;" title="Image 3">
+                                            <img src="{{ level.image3.url }}" alt="Image 3">
                                             {% else %}
-                                                <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">-</div>
+                                            <div class="no-image">-</div>
                                             {% endif %}
+                                    </div>
+                                    <div class="level-image-item">
                                             {% if level.image4 %}
-                                                <img src="{{ level.image4.url }}" width="40" height="40" class="rounded" style="object-fit: cover;" title="Image 4">
+                                            <img src="{{ level.image4.url }}" alt="Image 4">
                                             {% else %}
-                                                <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">-</div>
+                                            <div class="no-image">-</div>
                                             {% endif %}
                                         </div>
-                                    </td>
-                                    <td>{{ level.attempts }}</td>
-                                    <td>{{ level.created_at|date:"M d, Y H:i" }}</td>
-                                    <td>
-                                        <button type="button" class="btn btn-sm btn-warning me-1" onclick="editLevel({{ level.id}})">
+                                </div>
+                                <div class="level-info">
+                                    <div class="level-info-item">
+                                        <span class="level-info-label">Attempts</span>
+                                        <span class="level-info-value">{{ level.attempts }}</span>
+                                    </div>
+                                    <div class="level-info-item">
+                                        <span class="level-info-label">Created</span>
+                                        <span class="level-info-value">{{ level.created_at|date:"M d, Y" }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="level-card-footer">
+                                <button type="button" class="btn btn-sm btn-warning" onclick="editLevel({{ level.id }})">
                                             <i class="fas fa-edit"></i> Edit
                                         </button>
                                         <button type="button" class="btn btn-sm btn-danger" onclick="deleteLevel({{ level.id }})">
                                             <i class="fas fa-trash"></i> Delete
                                         </button>
-                                    </td>
-                                </tr>
+                            </div>
+                        </div>
                                 {% endfor %}
-                            </tbody>
-                        </table>
                     </div>
                 {% else %}
                     <div class="alert alert-info">
@@ -328,12 +523,31 @@
                 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            // Check if response is JSON
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                return response.json();
+            } else {
+                // If it's a successful response (200) or redirect, treat as success
+                if (response.ok || response.status === 200 || response.status === 302) {
+                    return { success: true, redirect: true };
+                } else {
+                    // Try to parse as text to see if there's an error message
+                    return response.text().then(text => {
+                        console.error('Server response:', text.substring(0, 200));
+                        throw new Error('Server returned non-JSON response');
+                    });
+                }
+            }
+        })
         .then(data => {
-            if (data.success) {
+            if (data.success || data.redirect) {
                 // Close modal
                 const modal = bootstrap.Modal.getInstance(document.getElementById('addLevelModal'));
+                if (modal) {
                 modal.hide();
+                }
 
                 // Show success message
                 alert('Level added successfully!');
@@ -346,7 +560,9 @@
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred while adding the level.');
+            // If there's an error but it might be a redirect, just reload
+            alert('Level may have been added. Reloading page...');
+            location.reload();
         });
     });
 
@@ -419,6 +635,76 @@
             .catch(error => {
                 console.error('Error:', error);
                 alert('An error occurred while deleting the level.');
+            });
+        }
+    }
+
+    // Toggle select all checkboxes
+    function toggleSelectAll(selectAllCheckbox) {
+        const checkboxes = document.querySelectorAll('.level-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = selectAllCheckbox.checked;
+        });
+        updateDeleteButton();
+    }
+
+    // Update select all checkbox state
+    function updateDeleteButton() {
+        const checkboxes = document.querySelectorAll('.level-checkbox:checked');
+        const selectAllCheckbox = document.getElementById('selectAll');
+
+        // Update select all checkbox state
+        const allCheckboxes = document.querySelectorAll('.level-checkbox');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.checked = checkboxes.length === allCheckboxes.length && allCheckboxes.length > 0;
+        }
+    }
+
+    // Delete selected levels
+    function deleteSelectedLevels() {
+        const selectedCheckboxes = document.querySelectorAll('.level-checkbox:checked');
+        const selectedIds = Array.from(selectedCheckboxes).map(cb => cb.value);
+        
+        if (selectedIds.length === 0) {
+            alert('Please select at least one level to delete.');
+            return;
+        }
+
+        if (confirm(`Are you sure you want to delete ${selectedIds.length} level(s)? This action cannot be undone.`)) {
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            let deletedCount = 0;
+            let errorCount = 0;
+
+            // Delete each level sequentially
+            const deletePromises = selectedIds.map(levelId => {
+                return fetch('/adminpage/delete-minigame-level/' + levelId + '/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        deletedCount++;
+                    } else {
+                        errorCount++;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting level:', error);
+                    errorCount++;
+                });
+            });
+
+            Promise.all(deletePromises).then(() => {
+                if (errorCount === 0) {
+                    alert(`${deletedCount} level(s) deleted successfully!`);
+                } else {
+                    alert(`${deletedCount} level(s) deleted. ${errorCount} error(s) occurred.`);
+                }
+                location.reload();
             });
         }
     }

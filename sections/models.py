@@ -236,3 +236,38 @@ class GrowthStage(models.Model):
 
     def __str__(self):
         return f"{self.date} - {self.title}"
+
+
+class QuizAttempt(models.Model):
+    """Model to track user quiz attempts"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='quiz_attempts')
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='attempts')
+    score = models.PositiveIntegerField(default=0)
+    total_questions = models.PositiveIntegerField(default=0)
+    completed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-completed_at']
+        verbose_name = "Quiz Attempt"
+        verbose_name_plural = "Quiz Attempts"
+
+    def __str__(self):
+        return f"{self.user.username} - {self.quiz.title} ({self.score}/{self.total_questions})"
+
+
+class MinigameAttempt(models.Model):
+    """Model to track user minigame level attempts"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='minigame_attempts')
+    level = models.ForeignKey(MinigameLevel, on_delete=models.CASCADE, related_name='user_attempts')
+    completed = models.BooleanField(default=False)
+    completed_at = models.DateTimeField(blank=True, null=True)
+    attempts_count = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        ordering = ['-completed_at']
+        unique_together = ('user', 'level')
+        verbose_name = "Minigame Attempt"
+        verbose_name_plural = "Minigame Attempts"
+
+    def __str__(self):
+        return f"{self.user.username} - Level {self.level.id} {'(Completed)' if self.completed else '(Incomplete)'}"
