@@ -350,11 +350,11 @@ def download_attachment(request, section_id):
         return redirect('educationalsection')
 
 
-@login_required
 def log_section_view(request, section_id):
-    """Log when user views a section"""
-    log_file_access(request, section_id, 'view')
-    return JsonResponse({'status': 'logged'})
+    """Log when user views a section (no login required for logging)"""
+    if request.user.is_authenticated:
+        log_file_access(request, section_id, 'view')
+    return JsonResponse({'status': 'logged' if request.user.is_authenticated else 'skipped'})
 
 def home_view(request):
     return render(request, 'users/home.html')
