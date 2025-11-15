@@ -138,23 +138,24 @@
 
 <script>
 // Log file download and view tracking
+// Note: downloads are logged server-side by the download view which uses the logged-in user.
 function logDownload(sectionId) {
-    fetch(`/log-view/${sectionId}/`, {method: 'GET'})
-        .then(response => {
-            console.log('Download logged for section', sectionId);
-            return true;
-        })
-        .catch(err => {
-            console.error('Error logging download:', err);
-            return true;
-        });
-    return true; // Allow link to proceed
+    // Let the browser navigate to the download URL; server will record the download with request.user.
+    return true;
 }
 
 function logSectionView(sectionId) {
-    fetch(`/log-view/${sectionId}/`, {method: 'GET'})
+    // Build the correct log endpoint using Django's URL resolver (replace the placeholder id)
+    const urlTemplate = "{% url 'log-section-view' 0 %}"; // e.g. /users/log-view/0/
+    const url = urlTemplate.replace('/0/', '/' + sectionId + '/');
+
+    fetch(url, {method: 'GET', credentials: 'same-origin'})
         .then(response => {
-            console.log('View logged for section', sectionId);
+            if (response.ok) {
+                console.log('View logged for section', sectionId);
+            } else {
+                console.warn('Log endpoint returned', response.status);
+            }
         })
         .catch(err => {
             console.error('Error logging view:', err);

@@ -33,8 +33,11 @@ from django.db import models
 
 def login_view(request):
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
+        # Trim whitespace to avoid accidental mismatch
+        username = (request.POST.get('username') or '').strip()
+        password = (request.POST.get('password') or '').strip()
+        # Bind the authentication form to show any form errors back to template
+        form = AuthenticationForm(request=request, data=request.POST)
         
         # Check for admin credentials
         if username == 'admin' and password == 'dadah06!':
@@ -58,20 +61,31 @@ def login_view(request):
                 admin_user.is_active = True
                 admin_user.save()
             
-            # Authenticate and login
+            # Authenticate and login. If authenticate() fails for some reason
+            # (rare with a freshly set password), fall back to attaching
+            # the default backend to the user instance and logging them in.
             user = authenticate(request, username='admin', password='dadah06!')
-            if user is not None:
+            if user is None:
+                # Try retrieving the admin_user we created/updated above
+                admin_user = User.objects.filter(username='admin').first()
+                if admin_user:
+                    # Attach the default ModelBackend so Django's login() accepts it
+                    admin_user.backend = 'django.contrib.auth.backends.ModelBackend'
+                    login(request, admin_user)
+                    if hasattr(admin_user, 'profile'):
+                        admin_user.profile.reset_failed_attempts()
+                    return redirect('adminpage-admin-dashboard')
+                else:
+                    messages.error(request, 'Admin authentication failed.')
+                    form = AuthenticationForm()
+                    return render(request, 'registration/login.html', {'form': form})
+            else:
                 login(request, user)
                 # Reset failed attempts for admin
                 if hasattr(user, 'profile'):
                     user.profile.reset_failed_attempts()
                 # Redirect to admin dashboard
-                return redirect('/adminpage/admin-dashboard/')
-            else:
-                # If admin authentication fails, show error
-                messages.error(request, 'Admin authentication failed.')
-                form = AuthenticationForm()
-                return render(request, 'registration/login.html', {'form': form})
+                return redirect('adminpage-admin-dashboard')
         
         # Regular user authentication (only for non-admin users)
         try:
@@ -89,6 +103,9 @@ def login_view(request):
                 if hasattr(user, 'profile'):
                     user.profile.reset_failed_attempts()
                 login(request, user)
+                # If admin or superuser, send to admin dashboard
+                if user.username == 'admin' or user.is_superuser:
+                    return redirect('/adminpage/admin-dashboard/')
                 return redirect('home')
             else:
                 # Failed login - increment attempts
@@ -103,12 +120,10 @@ def login_view(request):
                         messages.error(request, f'Invalid username or password. {remaining_attempts} attempts remaining.')
                 else:
                     messages.error(request, 'Invalid username or password.')
-                form = AuthenticationForm()
                 return render(request, 'registration/login.html', {'form': form})
                 
         except User.DoesNotExist:
             messages.error(request, 'Invalid username or password.')
-            form = AuthenticationForm()
             return render(request, 'registration/login.html', {'form': form})
     
     form = AuthenticationForm()
@@ -121,28 +136,49 @@ def user_management(request):
     if request.user.username == 'admin' or request.user.is_superuser:
         # Handle block/unblock actions
         if request.method == 'POST':
-            action = request.POST.get('action')
-            user_id = request.POST.get('user_id')
-            
-            if action and user_id:
-                try:
-                    user_obj = User.objects.get(id=user_id)
-                    if hasattr(user_obj, 'profile'):
-                        if action == 'block':
-                            user_obj.profile.status = 'blocked'
-                            user_obj.profile.save()
-                            messages.success(request, f'User {user_obj.username} has been blocked.')
-                        elif action == 'unblock':
-                            user_obj.profile.reset_failed_attempts()
-                            messages.success(request, f'User {user_obj.username} has been unblocked.')
-                except User.DoesNotExist:
-                    messages.error(request, 'User not found.')
+                action = request.POST.get('action')
+                # Support multiple user ids (from checkboxes) or a single user_id
+                user_ids = request.POST.getlist('user_id') or []
+                # Backwards-compat: if only single user_id present via get, include it
+                single_id = request.POST.get('user_id')
+                if single_id and single_id not in user_ids:
+                    user_ids.append(single_id)
+
+                if action and user_ids:
+                    if action == 'delete':
+                        # Prevent deleting the currently logged-in admin
+                        safe_ids = [int(uid) for uid in user_ids if uid and int(uid) != request.user.id]
+                        if not safe_ids:
+                            messages.error(request, 'No valid users selected for deletion.')
+                        else:
+                            # Delete users in bulk
+                            qs = User.objects.filter(id__in=safe_ids)
+                            deleted_count = qs.count()
+                            qs.delete()
+                            messages.success(request, f'Deleted {deleted_count} user(s).')
+                    else:
+                        # Handle single-item actions like block/unblock
+                        for uid in user_ids:
+                            try:
+                                user_obj = User.objects.get(id=uid)
+                                if hasattr(user_obj, 'profile'):
+                                    if action == 'block':
+                                        user_obj.profile.status = 'blocked'
+                                        user_obj.profile.save()
+                                        messages.success(request, f'User {user_obj.username} has been blocked.')
+                                    elif action == 'unblock':
+                                        user_obj.profile.reset_failed_attempts()
+                                        messages.success(request, f'User {user_obj.username} has been unblocked.')
+                            except User.DoesNotExist:
+                                messages.error(request, f'User with id {uid} not found.')
         
-        all_users = User.objects.all().order_by('-date_joined')
-        superuser_count = User.objects.filter(is_superuser=True).count()
-        staff_count = User.objects.filter(is_staff=True).count()
-        regular_user_count = User.objects.filter(is_staff=False, is_superuser=False).count()
-        active_users = User.objects.filter(is_active=True).count()
+        # Exclude the built-in admin account from lists and totals
+        base_qs = User.objects.exclude(username='admin')
+        all_users = base_qs.order_by('-date_joined')
+        superuser_count = base_qs.filter(is_superuser=True).count()
+        staff_count = base_qs.filter(is_staff=True).count()
+        regular_user_count = base_qs.filter(is_staff=False, is_superuser=False).count()
+        active_users = base_qs.filter(is_active=True).count()
         
         # Count blocked users
         blocked_users = 0
@@ -150,13 +186,13 @@ def user_management(request):
             if hasattr(user, 'profile') and user.profile.is_blocked():
                 blocked_users += 1
         
-        # Count new users today
+        # Count new users today (excluding admin)
         from datetime import date
         today = date.today()
-        new_users_today = User.objects.filter(date_joined__date=today).count()
+        new_users_today = base_qs.filter(date_joined__date=today).count()
         
         context = {
-            'total_users': User.objects.count(),
+            'total_users': base_qs.count(),
             'all_users': all_users,
             'superuser_count': superuser_count,
             'staff_count': staff_count,
@@ -175,7 +211,9 @@ def user_management(request):
 def user_performance(request):
     """Admin page to show user performance metrics with quiz and minigame data."""
     if request.user.username == 'admin' or request.user.is_superuser:
-        all_users = User.objects.all().order_by('-date_joined')
+        # Exclude the admin account from performance listings
+        base_qs = User.objects.exclude(username='admin')
+        all_users = base_qs.order_by('-date_joined')
         
         # Build user performance data
         user_performance_data = []
@@ -201,8 +239,8 @@ def user_performance(request):
         context = {
             'all_users': all_users,
             'user_performance_data': user_performance_data,
-            'total_users': User.objects.count(),
-            'active_users': User.objects.filter(is_active=True).count(),
+            'total_users': base_qs.count(),
+            'active_users': base_qs.filter(is_active=True).count(),
             'blocked_users': sum(1 for u in all_users if hasattr(u, 'profile') and u.profile.is_blocked()),
         }
         return render(request, 'adminpage/userperformance.html', context)
@@ -214,9 +252,11 @@ def admin_dashboard(request):
     # Allow admin user access regardless of superuser status
     # Allow access if username is 'admin' OR if user is a superuser
     if request.user.username == 'admin' or request.user.is_superuser:
+        # Exclude admin account from dashboard counts
+        base_qs = User.objects.exclude(username='admin')
         # Get file access analytics
-        total_file_views = FileAccessLog.objects.filter(access_type='view').count()
-        total_file_downloads = FileAccessLog.objects.filter(access_type='download').count()
+        total_file_views = FileAccessLog.objects.filter(access_type='view').exclude(user__username='admin').count()
+        total_file_downloads = FileAccessLog.objects.filter(access_type='download').exclude(user__username='admin').count()
         
         # Get recent file access logs (last 7 days)
         from datetime import timedelta
@@ -228,11 +268,11 @@ def admin_dashboard(request):
             view_count=models.Count('access_logs', filter=models.Q(access_logs__access_type='view'))
         ).order_by('-view_count')[:5]
         
-        # Get user access stats
-        active_users_with_access = FileAccessLog.objects.values('user').distinct().count()
+        # Get user access stats (exclude admin)
+        active_users_with_access = FileAccessLog.objects.exclude(user__username='admin').values('user').distinct().count()
         
         context = {
-            'total_users': User.objects.count(),
+            'total_users': base_qs.count(),
             'total_educational_sections': Section.objects.count(),
             'total_festival_events': FestivalEvent.objects.count(),
             'total_activities': 0,  # Placeholder - you can add actual activity model later
@@ -263,6 +303,30 @@ def admin_profile(request):
         return render(request, 'adminpage/admin-profile.html', context)
     else:
         return redirect('home')
+
+
+@login_required
+def admin_feedbacks_json(request):
+    """Return recent feedback entries as JSON for admin pages."""
+    # allow only admin or superuser to view feedback
+    if not (request.user.username == 'admin' or request.user.is_superuser):
+        return JsonResponse({'error': 'forbidden'}, status=403)
+
+    from .models import Feedback
+
+    feedbacks = Feedback.objects.all()[:50]
+    data = []
+    for f in feedbacks:
+        data.append({
+            'id': f.id,
+            'user': f.user.username if f.user else (f.name or 'Anonymous'),
+            'email': f.email,
+            'message': f.message,
+            'created_at': f.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'resolved': bool(f.resolved),
+        })
+
+    return JsonResponse({'feedbacks': data})
 
 def educationalsection(request):
 
@@ -523,6 +587,35 @@ def profile_view(request):
 
 def about_view(request):
     return render(request, 'users/about.html')
+
+
+def contactus(request):
+    """Render contact/feedback page. Accept simple POST submissions.
+
+    This view intentionally does minimal processing: it shows a success message
+    and redirects back to the contact page. Extend to persist feedback or send
+    email as needed.
+    """
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        email = request.POST.get('email', '').strip()
+        message_text = request.POST.get('message', '').strip()
+        # Persist feedback to DB
+        try:
+            from .models import Feedback
+            fb = Feedback.objects.create(
+                user=request.user if request.user.is_authenticated else None,
+                name=name,
+                email=email,
+                message=message_text
+            )
+        except Exception:
+            # If saving fails, still show success but log could be added
+            pass
+        messages.success(request, 'Thank you for your feedback!')
+        return redirect('contactus')
+
+    return render(request, 'users/contactus.html')
 
 @login_required
 def content_manager(request):
@@ -1254,8 +1347,17 @@ def add_minigame_level(request):
         return redirect('home')
 
 def logout_view(request):
+    # Clear any queued messages so they don't appear on the login page after logout
+    try:
+        storage = messages.get_messages(request)
+        # iterating consumes the messages
+        for _ in storage:
+            pass
+    except Exception:
+        pass
+
     logout(request)
-    return redirect('/')
+    return redirect('login')
 
 @login_required
 def edit_minigame_level(request, level_id):
@@ -1484,3 +1586,21 @@ def generate_user_report(request):
     response['Content-Disposition'] = 'attachment; filename="user_report.pdf"'
     return response
 
+
+@login_required
+def custom_password_change(request):
+    """Custom password change view that redirects to profile with success message"""
+    from django.contrib.auth.views import PasswordChangeView
+    from django.urls import reverse_lazy
+    
+    class CustomPasswordChangeView(PasswordChangeView):
+        template_name = 'users/profile.html'
+        success_url = reverse_lazy('profile')
+        
+        def form_valid(self, form):
+            response = super().form_valid(form)
+            # Add success parameter to redirect URL
+            return redirect(reverse_lazy('profile') + '?password_changed=true')
+    
+    view = CustomPasswordChangeView.as_view()
+    return view(request)

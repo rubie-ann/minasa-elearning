@@ -2,6 +2,7 @@ from django.contrib import admin
 from .models import Section, Profile, MinasaProduct
 from django.utils.html import format_html
 from .models import FestivalEvent, Category, Quiz, Question, Answer, MinigameLevel
+from .models import Feedback
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from .models import GrowthStage
@@ -141,6 +142,24 @@ class MinigameLevelAdmin(admin.ModelAdmin):
 class GrowthStageAdmin(admin.ModelAdmin):
     list_display = ('date', 'title')
     ordering = ('date',)
+
+
+@admin.register(Feedback)
+class FeedbackAdmin(admin.ModelAdmin):
+    list_display = ('id', 'short_sender', 'email', 'created_at', 'resolved')
+    list_filter = ('resolved', 'created_at')
+    search_fields = ('name', 'email', 'message')
+    readonly_fields = ('name', 'email', 'message', 'user', 'created_at')
+    actions = ('mark_resolved',)
+
+    def short_sender(self, obj):
+        return obj.user.username if obj.user else (obj.name or 'Anonymous')
+    short_sender.short_description = 'Sender'
+
+    def mark_resolved(self, request, queryset):
+        updated = queryset.update(resolved=True)
+        self.message_user(request, f'{updated} feedback item(s) marked resolved.')
+    mark_resolved.short_description = 'Mark selected feedback as resolved'
 
 # Unregister the default User admin and register our custom one
 admin.site.unregister(User)

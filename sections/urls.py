@@ -15,6 +15,7 @@ from django.urls import path
 from . import views
 from django.shortcuts import render
 from django.contrib.auth.views import LogoutView
+from django.contrib.auth.views import PasswordChangeView
 
 urlpatterns = [
     path('', views.login_view, name='login'),  # default page is login
@@ -27,7 +28,9 @@ urlpatterns = [
     path('growth-timeline/', views.growth_timeline, name='growth_timeline'),
     path('activities/', views.activities_view, name='activities'),
     path('profile/', views.profile_view, name='profile'),
+    path('change-password/', views.custom_password_change, name='password_change'),
     path('about/', lambda request: render(request, 'users/about.html'), name='about'),
+    path('contactus/', views.contactus, name='contactus'),
     path('admin-dashboard/', views.admin_dashboard, name='admin-dashboard'),
     path('admin-profile/', views.admin_profile, name='adminpage-admin-profile'),
     path('download-attachment/<int:section_id>/', views.download_attachment, name='download-attachment'),

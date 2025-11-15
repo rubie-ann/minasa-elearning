@@ -4,9 +4,235 @@
 {% block title %}Profile{% endblock %}
 
 {% block content %}
-<div class="profile-container">
+<style>
+    .profile-container {
+        max-width: 1000px;
+        margin: 40px auto;
+        padding: 20px;
+    }
 
-    <h2>My Profile</h2>
+    .profile-header {
+        margin-bottom: 40px;
+    }
+
+    .profile-header h2 {
+        font-size: 2.5rem;
+        color: #5e2217;
+        margin: 0 0 30px 0;
+    }
+
+    .profile-tabs {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #e0e0e0;
+    }
+
+    .profile-tab-btn {
+        padding: 12px 24px;
+        background: none;
+        border: none;
+        border-bottom: 3px solid transparent;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #666;
+        transition: all 0.3s ease;
+    }
+
+    .profile-tab-btn.active {
+        color: #f97316;
+        border-bottom-color: #f97316;
+    }
+
+    .profile-tab-btn:hover:not(.active) {
+        color: #5e2217;
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 40px;
+        align-items: start;
+    }
+
+    .profile-content {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 40px;
+        align-items: start;
+    }
+
+    .profile-top-card {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        position: sticky;
+        top: 20px;
+    }
+
+    .profile-pic-wrapper {
+        position: relative;
+        width: 160px;
+        height: 160px;
+        margin-bottom: 20px;
+    }
+
+    .profile-pic {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid #f97316;
+        box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
+    }
+
+    .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .profile-pic-wrapper:hover .overlay {
+        opacity: 1;
+    }
+
+    .plus-icon {
+        font-size: 40px;
+        color: white;
+        font-weight: bold;
+    }
+
+    .profile-top-card h3 {
+        font-size: 1.8rem;
+        color: #2c3e50;
+        margin: 0;
+        word-break: break-word;
+    }
+
+    .profile-details-card {
+        background: white;
+        border-radius: 16px;
+        padding: 40px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: #5e2217;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.3s ease;
+        box-sizing: border-box;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: #f97316;
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+    }
+
+    .form-group input:disabled {
+        background-color: #f5f5f5;
+        color: #999;
+        cursor: not-allowed;
+    }
+
+    .profile-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+    }
+
+    .btn-primary, .btn-secondary {
+        padding: 12px 28px;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        flex: 1;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #fbbf24, #f97316);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        filter: brightness(0.95);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+    }
+
+    .btn-secondary {
+        background: #e0e0e0;
+        color: #333;
+    }
+
+    .btn-secondary:hover {
+        background: #d0d0d0;
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+        .profile-content {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .profile-top-card {
+            position: relative;
+            top: 0;
+        }
+
+        .profile-header h2 {
+            font-size: 1.8rem;
+        }
+
+        .profile-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="profile-container">
+    <div class="profile-header">
+        <h2>My Profile</h2>
+    </div>
 
     {% if messages %}
         <div id="messageModal" class="modal-message">
@@ -19,10 +245,15 @@
         </div>
     {% endif %}
 
+    <!-- Tab Navigation -->
+    <div class="profile-tabs">
+        <button class="profile-tab-btn active" data-tab="profile-info">Profile Information</button>
+        <button class="profile-tab-btn" data-tab="change-password">Change Password</button>
+    </div>
 
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-
+    <!-- Tab 1: Profile Information -->
+    <div id="profile-info" class="tab-content active">
+        <!-- Left Column: Profile Picture -->
         <div class="profile-top-card">
             <div class="profile-pic-wrapper">
                 <img id="profile-pic-preview" src="{% if user.profile.image %}{{ user.profile.image.url }}{% else %}{{ MEDIA_URL }}images/user.png{% endif %}" class="profile-pic">
@@ -34,31 +265,93 @@
             <h3>{{ user.first_name }} {{ user.last_name }}</h3>
         </div>
 
-        <div class="profile-details-card">
+        <!-- Right Column: Profile Details -->
+        <form method="post" enctype="multipart/form-data" class="profile-details-card">
+            {% csrf_token %}
+
             <div class="form-group">
                 <label>First Name</label>
                 <input type="text" name="first_name" value="{{ user.first_name }}">
             </div>
+
             <div class="form-group">
                 <label>Last Name</label>
                 <input type="text" name="last_name" value="{{ user.last_name }}">
             </div>
+
             <div class="form-group">
                 <label>Email</label>
                 <input type="email" name="email" value="{{ user.email }}">
             </div>
+
             <div class="form-group">
                 <label>Username</label>
                 <input type="text" value="{{ user.username }}" disabled>
             </div>
-            <button type="submit" class="btn-primary">Update</button>
+
+            <div class="profile-actions">
+                <button type="submit" class="btn-primary">Update Profile</button>
+                <form method="post" action="{% url 'logout' %}" style="flex: 1;">
+                    {% csrf_token %}
+                </form>
+
+            </div>
+                                <button class="btn-secondary">Logout</button>
+
+        </form>
         
-    </form>
-    <form method="post" action="{% url 'logout' %}" style="margin-top: 20px;">
-        {% csrf_token %}
-        <button type="submit" class="btn-secondary">Logout</button>
-    </form>
-</div></div>
+    </div>
+
+    <!-- Tab 2: Change Password -->
+    <div id="change-password" class="tab-content">
+        <div class="profile-top-card">
+            <div style="text-align: center;">
+                <div style="font-size: 50px; margin-bottom: 15px;">🔐</div>
+                <h3>Security</h3>
+                <p style="color: #666; margin-top: 10px;">Keep your account safe</p>
+            </div>
+        </div>
+
+        <form method="post" class="profile-details-card">
+            {% csrf_token %}
+
+            {% if 'password_changed' in request.GET %}
+                <div style="background: #d4edda; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #28a745; color: #155724;">
+                    <strong>Success!</strong> Your password has been changed successfully.
+                </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label>Current Password</label>
+                <input type="password" name="old_password" required>
+            </div>
+
+            <div class="form-group">
+                <label>New Password</label>
+                <input type="password" name="new_password1" required>
+                <small style="color: #999; margin-top: 5px; display: block;">Must be at least 8 characters</small>
+            </div>
+
+            <div class="form-group">
+                <label>Confirm New Password</label>
+                <input type="password" name="new_password2" required>
+            </div>
+
+            {% if form.errors %}
+                <div style="background: #ffe0e0; padding: 15px; border-radius: 8px; margin-bottom: 20px; color: #c41e3a;">
+                    {% for field, error in form.errors.items %}
+                        <p style="margin: 5px 0;">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="profile-actions">
+                <button type="submit" class="btn-primary">Change Password</button>
+                <button type="reset" class="btn-secondary">Clear</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <script>
 const input = document.getElementById('id_image');
@@ -85,13 +378,30 @@ document.addEventListener('DOMContentLoaded', () => {
             modal.style.display = 'none';
         });
 
-        // close if clicked outside
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 modal.style.display = 'none';
             }
         });
     }
+
+    // Tab switching
+    const tabButtons = document.querySelectorAll('.profile-tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tabId = button.dataset.tab;
+
+            // Remove active class from all buttons and tabs
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+
+            // Add active class to clicked button and corresponding tab
+            button.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        });
+    });
 });
 </script>
 

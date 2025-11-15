@@ -107,14 +107,14 @@
     </div>
     <ul class="admin-nav">
         <li><a href="{% url 'adminpage-admin-dashboard' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-        <li><a href="{% url 'adminpage-admin-profile' %}"><i class="fas fa-user-circle"></i> Profile</a></li>
         <li><a href="#" class="active"><i class="fas fa-users"></i> User Management</a></li>
         <li><a href="{% url 'adminpage-user-performance' %}"><i class="fas fa-chart-line"></i> User Performance</a></li>
         <li><a href="{% url 'adminpage-content-manager' %}"><i class="fas fa-layer-group"></i> Content Manager</a></li>
         <li><a href="{% url 'adminpage-minasa-products' %}"><i class="fas fa-shopping-bag"></i> Minasa Products</a></li>
         <li><a href="{% url 'adminpage-activities' %}"><i class="fas fa-calendar"></i> Activities</a></li>
         <li><a href="{% url 'adminpage-festival-calendar' %}"><i class="fas fa-star"></i> Events</a></li>
-        <!-- <li><a href="{% url 'home' %}"><i class="fas fa-home"></i> Back to Home</a></li> -->
+               <li><a href="{% url 'adminpage-admin-profile' %}"><i class="fas fa-user-circle"></i> Profile</a></li>
+ <!-- <li><a href="{% url 'home' %}"><i class="fas fa-home"></i> Back to Home</a></li> -->
     </ul>
    
     <div class="admin-actions">
@@ -153,8 +153,10 @@
             </div>
             <div class="stat-card">
                 <div>
-                    <h3>{{ new_users_today }}</h3>
-                    <p>New Today</p>
+                    <button id="btnFeedback" class="feedback-btn" aria-label="View user feedback" style="background:none;border:none;padding:0;cursor:pointer;text-align:left;">
+                        <h4 style="margin:0; font-weight: bold;">User Feedback</h4>
+                        <p style="margin:0;text-align:left;color:#666;font-size:10px;">Click to view recent messages and suggestions from users.</p>
+                    </button>
                 </div>
             </div>
         </div>
@@ -170,7 +172,7 @@
                     <a href="{% url 'adminpage-user-performance' %}">
                         <button style="background-color: #6c757d; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;"><i class="fas fa-chart-line"></i> User Performance</button>
                     </a>
-                    <button style="background-color: #dc3545; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;"><i class="fas fa-trash"></i> Delete</button>
+                    <button id="btnDeleteSelected" style="background-color: #dc3545; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;"><i class="fas fa-trash"></i> Delete</button>
                     <a href="{% url 'generate_user_report' %}" >
                         <button style="background-color: #ffc107; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;"><i class="fas fa-file-alt"></i> Generate Report</button>
                     </a>
@@ -317,6 +319,111 @@ function performUserAction(userId, action) {
     // Submit the form
     document.body.appendChild(form);
     form.submit();
+}
+
+// Delete selected users (bulk)
+document.getElementById('btnDeleteSelected').addEventListener('click', function(){
+    const checked = Array.from(document.querySelectorAll('input[name="selected_user"]:checked'));
+    if(!checked.length){
+        alert('Select at least one user to delete.');
+        return;
+    }
+    if(!confirm(`Are you sure you want to delete ${checked.length} user(s)? This action cannot be undone.`)){
+        return;
+    }
+
+    // Create form and include multiple user_id inputs
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{% url "adminpage-user-management" %}';
+
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+
+    const actionInput = document.createElement('input');
+    actionInput.type = 'hidden';
+    actionInput.name = 'action';
+    actionInput.value = 'delete';
+    form.appendChild(actionInput);
+
+    checked.forEach(ch => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'user_id';
+        input.value = ch.value;
+        form.appendChild(input);
+    });
+
+    document.body.appendChild(form);
+    form.submit();
+});
+</script>
+<!-- Feedback Modal -->
+<div id="feedbackModal" style="display:none;position:fixed;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;">
+    <div style="max-width:900px;margin:60px auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 6px 30px rgba(0,0,0,0.2);height:80vh;overflow:auto;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <h3 style="margin:0;">User Feedback</h3>
+            <div>
+                <button id="closeFeedback" style="background:#dc3545;color:#fff;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;">Close</button>
+            </div>
+        </div>
+        <div id="feedbackList">
+            <p style="color:#666;">Loading feedback...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('btnFeedback').addEventListener('click', function(){
+    openFeedbackModal();
+});
+document.getElementById('closeFeedback').addEventListener('click', function(){
+    document.getElementById('feedbackModal').style.display = 'none';
+});
+
+function openFeedbackModal(){
+    document.getElementById('feedbackModal').style.display = 'block';
+    // Fetch feedback JSON
+    fetch('/adminpage/feedbacks-json/')
+        .then(r => {
+            if(!r.ok){ throw new Error('Network error'); }
+            return r.json();
+        })
+        .then(data => renderFeedbackList(data.feedbacks || []))
+        .catch(err => {
+            document.getElementById('feedbackList').innerHTML = '<p style="color:#c00;">Error loading feedback.</p>';
+            console.error(err);
+        });
+}
+
+function renderFeedbackList(list){
+    const container = document.getElementById('feedbackList');
+    if(!list.length){
+        container.innerHTML = '<p>No feedback yet.</p>';
+        return;
+    }
+    let html = '<div style="display:grid;gap:12px;">';
+    list.forEach(item => {
+        html += `<div style="border:1px solid #eee;padding:12px;border-radius:6px;background:#fafafa;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px;">
+                <strong>${escapeHtml(item.user)}</strong>
+                <small style="color:#666;">${escapeHtml(item.created_at)}</small>
+            </div>
+            <div style="color:#333;margin-bottom:8px;">${escapeHtml(item.message)}</div>
+            <div style="font-size:13px;color:#666;">${item.email ? escapeHtml(item.email) : ''}</div>
+        </div>`;
+    });
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+function escapeHtml(s){
+    if(!s) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 </script>
 {% endblock %}

@@ -299,3 +299,22 @@ class FileAccessLog(models.Model):
     def __str__(self):
         username = self.user.username if self.user else 'Guest'
         return f"{username} - {self.section.title} ({self.access_type})"
+
+
+class Feedback(models.Model):
+    """Simple model to store feedback or suggestions from users."""
+    user = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='feedbacks')
+    name = models.CharField(max_length=200, blank=True)
+    email = models.EmailField(blank=True)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    resolved = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Feedback'
+        verbose_name_plural = 'Feedback'
+
+    def __str__(self):
+        who = self.user.username if self.user else (self.name or 'Anonymous')
+        return f"{who}: {self.message[:40]}" 

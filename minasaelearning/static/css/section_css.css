@@ -575,6 +575,39 @@ body {
     border: 1px solid #ccc;
 }
 
+.form-group textarea {
+    width: 95%;
+    padding: 10px 15px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    resize: vertical;
+}
+
+.contact-form { max-width: 680px; }
+
+/* Generic form-control to make inputs and textarea consistent */
+.form-control {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 14px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+}
+
+.form-control:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(249,115,22,0.12);
+    border-color: #f97316;
+}
+
+/* Ensure textarea keeps a comfortable minimum height */
+.form-control[type="textarea"], .form-control textarea, textarea.form-control {
+    min-height: 140px;
+}
+
 .btn-primary {
     padding: 10px 20px;
     background: #f97316;

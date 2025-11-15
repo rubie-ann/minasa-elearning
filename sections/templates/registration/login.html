@@ -199,7 +199,7 @@
         <div class="login-title">Welcome Back</div>
         <div class="login-subtitle">Sign in to your account</div>
         
-        <form method="post" id="loginForm">
+        <form method="post" id="loginForm" action="/users/login/">
           {% csrf_token %}
           
           {% if messages %}

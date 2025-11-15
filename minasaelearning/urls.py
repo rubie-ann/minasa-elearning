@@ -45,6 +45,8 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('generate-report/', views.generate_content_report, name='generate_content_report'),
     path('generate-user-report/', views.generate_user_report, name='generate_user_report'),
+    # JSON endpoints for admin UI
+    path('adminpage/feedbacks-json/', views.admin_feedbacks_json, name='adminpage-feedbacks-json'),
     # API endpoints for saving quiz and minigame attempts
     path('api/quiz/<int:quiz_id>/save-attempt/', views.save_quiz_attempt, name='save_quiz_attempt'),
     path('api/minigame/<int:level_id>/save-attempt/', views.save_minigame_attempt, name='save_minigame_attempt'),
