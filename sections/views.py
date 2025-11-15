@@ -227,6 +227,19 @@ def admin_dashboard(request):
         # Redirect non-admin, non-superuser users
         return redirect('home')
 
+
+@login_required
+def admin_profile(request):
+    # Simple admin profile page; allow admin or superuser only
+    if request.user.username == 'admin' or request.user.is_superuser:
+        context = {
+            'user': request.user,
+            'MEDIA_URL': settings.MEDIA_URL,
+        }
+        return render(request, 'adminpage/admin-profile.html', context)
+    else:
+        return redirect('home')
+
 def educationalsection(request):
 
     sections = Section.objects.all().order_by('category', 'id')

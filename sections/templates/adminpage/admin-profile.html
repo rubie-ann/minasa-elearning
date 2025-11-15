@@ -1,0 +1,29 @@
+{% extends "users/base.html" %}
+{% load static %}
+
+{% block title %}Admin Profile{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/adminside.css' %}">
+
+<div class="admin-sidebar" style="display: none;"></div>
+
+<div class="admin-content">
+	<div class="admin-header">
+		<h1>Admin Profile</h1>
+	</div>
+
+	<section class="panel">
+		<h2>Profile Details</h2>
+		<div style="padding: 20px; background: #fff; border-radius: 8px;">
+			<p><strong>Username:</strong> {{ user.username }}</p>
+			<p><strong>Email:</strong> {{ user.email|default:"No email" }}</p>
+			<p><strong>First Name:</strong> {{ user.first_name|default:"-" }}</p>
+			<p><strong>Last Name:</strong> {{ user.last_name|default:"-" }}</p>
+			<p><a href="{% url 'profile' %}" class="btn btn-secondary"><i class="fas fa-edit"></i> Edit Profile</a></p>
+		</div>
+	</section>
+    
+</div>
+{% endblock %}
+

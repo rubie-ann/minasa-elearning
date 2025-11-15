@@ -29,6 +29,7 @@ urlpatterns = [
     path('profile/', views.profile_view, name='profile'),
     path('about/', lambda request: render(request, 'users/about.html'), name='about'),
     path('admin-dashboard/', views.admin_dashboard, name='admin-dashboard'),
+    path('admin-profile/', views.admin_profile, name='adminpage-admin-profile'),
     path('quiz/<int:quiz_id>/view/', views.quiz_view, name='quiz-view'),
     path('quiz/<int:quiz_id>/edit/', views.quiz_edit, name='quiz-edit'),
     path('quiz/<int:quiz_id>/delete/', views.quiz_delete, name='quiz-delete'),
