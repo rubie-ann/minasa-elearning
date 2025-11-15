@@ -281,7 +281,7 @@ class FileAccessLog(models.Model):
     ]
     
     section = models.ForeignKey(Section, on_delete=models.CASCADE, related_name='access_logs')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='file_access_logs')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='file_access_logs', null=True, blank=True)
     access_type = models.CharField(max_length=10, choices=ACCESS_TYPES)
     accessed_at = models.DateTimeField(auto_now_add=True)
     ip_address = models.GenericIPAddressField(blank=True, null=True)
@@ -297,4 +297,5 @@ class FileAccessLog(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.user.username} - {self.section.title} ({self.access_type})"
+        username = self.user.username if self.user else 'Guest'
+        return f"{username} - {self.section.title} ({self.access_type})"

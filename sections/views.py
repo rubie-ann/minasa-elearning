@@ -292,17 +292,15 @@ def log_file_access(request, section_id, access_type='view'):
     Utility function to log file access (view or download)
     access_type should be 'view' or 'download'
     """
-    if not request.user.is_authenticated:
-        return
-    
     try:
         section = Section.objects.get(id=section_id)
         ip_address = get_client_ip(request)
         user_agent = request.META.get('HTTP_USER_AGENT', '')
-        
+        user = request.user if getattr(request, 'user', None) and request.user.is_authenticated else None
+
         FileAccessLog.objects.create(
             section=section,
-            user=request.user,
+            user=user,
             access_type=access_type,
             ip_address=ip_address,
             user_agent=user_agent
@@ -321,7 +319,6 @@ def get_client_ip(request):
     return ip
 
 
-@login_required
 def download_attachment(request, section_id):
     """Download file attachment and log the download"""
     try:

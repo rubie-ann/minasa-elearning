@@ -58,7 +58,7 @@
                 {% if section.attachment %}
                     {% with section.attachment.name|lower as filename %}
                         <p class="section-attachment">
-                            <a href="{% url 'download-attachment' section.id %}" onclick="logDownload({{ section.id }})">
+                            <a href="{% url 'download-attachment' section.id %}" onclick="return logDownload({{ section.id }})">
                                 {% if '.pdf' in filename %}
                                     <img src="{% static 'images/pdf.png' %}" alt="PDF" class="file-icon">
                                 {% elif '.doc' in filename or '.docx' in filename %}
@@ -75,7 +75,7 @@
                 {% endif %}
 
 
-                <div class="seemorebtn view-btn"
+                 <div class="seemorebtn view-btn"
                      data-section-id="{{ section.id }}"
                      data-title="{{ section.title }}"
                      data-description="{{ section.description }}"
@@ -83,8 +83,9 @@
                      data-image="{% if section.image %}{{ section.image.url }}{% endif %}"
                      data-attachment="{% if section.attachment %}{{ section.attachment.url }}{% endif %}"
                      data-attachmentname="{% if section.attachment %}{{ section.attachment.name|cut:'attachments/' }}{% endif %}"
+                     data-download-url="{% url 'download-attachment' section.id %}"
                      data-link="{{ section.link }}">View
-                </div>
+                 </div>
             </div>
         </div>
         
@@ -138,13 +139,26 @@
 <script>
 // Log file download and view tracking
 function logDownload(sectionId) {
-    fetch(`/log-view/${sectionId}/`)
-        .catch(err => console.log('Download logged'));
+    fetch(`/log-view/${sectionId}/`, {method: 'GET'})
+        .then(response => {
+            console.log('Download logged for section', sectionId);
+            return true;
+        })
+        .catch(err => {
+            console.error('Error logging download:', err);
+            return true;
+        });
+    return true; // Allow link to proceed
 }
 
 function logSectionView(sectionId) {
-    fetch(`/log-view/${sectionId}/`)
-        .catch(err => console.log('View logged'));
+    fetch(`/log-view/${sectionId}/`, {method: 'GET'})
+        .then(response => {
+            console.log('View logged for section', sectionId);
+        })
+        .catch(err => {
+            console.error('Error logging view:', err);
+        });
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -184,8 +198,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 modalImageContainer.innerHTML = `<p><em>No image available.</em></p>`;
             }
 
-            if (attachment && attachmentName) {
-                modalAttachmentContainer.innerHTML = `<a href="${attachment}" target="_blank">${attachmentName}</a>`;
+            if (attachmentName) {
+                const downloadUrl = this.dataset.downloadUrl || attachment || (sectionId ? `/download-attachment/${sectionId}/` : '#');
+                modalAttachmentContainer.innerHTML = `<a href="${downloadUrl}" onclick="return logDownload(${sectionId});" target="_blank">${attachmentName}</a>`;
             } else {
                 modalAttachmentContainer.textContent = "No attachment available";
             }

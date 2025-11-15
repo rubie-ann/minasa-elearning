@@ -344,14 +344,6 @@
             <!-- Recent Access Activity -->
             <h3>Recent File Access Activity</h3>
             
-            <!-- Example/Demo Section -->
-            <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ffc107;">
-                <p style="margin: 0; color: #666; font-size: 13px;"><strong>📋 Example of Activity:</strong></p>
-                <p style="margin: 5px 0 0 0; color: #666; font-size: 13px;">
-                    <em>Nilo Flores viewed Bustos Heritage Park • Maria Santos downloaded Arrowroot Cultivation Guide • Juan Cruz viewed Cultural Traditions</em>
-                </p>
-            </div>
-            
             {% if recent_accesses %}
             <div style="margin-bottom: 30px;">
                 <table style="width: 100%; border-collapse: collapse;">
@@ -367,9 +359,14 @@
                         {% for access in recent_accesses %}
                         <tr style="border-bottom: 1px solid #eee;">
                             <td style="padding: 12px;">
-                                <strong>{{ access.user.username }}</strong>
-                                {% if access.user.first_name or access.user.last_name %}
-                                    <br><small style="color: #666;">{{ access.user.first_name }} {{ access.user.last_name }}</small>
+                                {% if access.user %}
+                                    <strong>{{ access.user.username }}</strong>
+                                    {% if access.user.first_name or access.user.last_name %}
+                                        <br><small style="color: #666;">{{ access.user.first_name }} {{ access.user.last_name }}</small>
+                                    {% endif %}
+                                {% else %}
+                                    <strong>Guest</strong>
+                                    <br><small style="color: #666;">Anonymous</small>
                                 {% endif %}
                             </td>
                             <td style="padding: 12px;">{{ access.section.title }}</td>
@@ -394,13 +391,9 @@
             </div>
             {% else %}
             <div style="background: #fff8e1; padding: 20px; border-radius: 8px; border-left: 4px solid #ffc107;">
-                <p style="margin: 0; color: #856404;"><strong>⏳ No activity yet</strong></p>
+                <p style="margin: 0; color: #856404;"><strong>No activity recorded yet</strong></p>
                 <p style="margin: 5px 0 0 0; color: #856404; font-size: 13px;">
-                    To see activity data, users need to visit the <strong>Educational Sections</strong> page and:
-                    <ul style="margin: 8px 0 0 20px; padding-left: 0;">
-                        <li>Click the <strong>"View"</strong> button on any section card (logs as a VIEW)</li>
-                        <li>Click on any <strong>file attachment</strong> to download (logs as a DOWNLOAD)</li>
-                    </ul>
+                    Activity will appear here once users visit the <strong>Educational Sections</strong> page and view or download content.
                 </p>
             </div>
             {% endif %}
