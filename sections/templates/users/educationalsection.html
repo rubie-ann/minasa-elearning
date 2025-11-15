@@ -58,7 +58,7 @@
                 {% if section.attachment %}
                     {% with section.attachment.name|lower as filename %}
                         <p class="section-attachment">
-                            <a href="{{ section.attachment.url }}" target="_blank">
+                            <a href="{% url 'download-attachment' section.id %}" onclick="logDownload({{ section.id }})">
                                 {% if '.pdf' in filename %}
                                     <img src="{% static 'images/pdf.png' %}" alt="PDF" class="file-icon">
                                 {% elif '.doc' in filename or '.docx' in filename %}
@@ -76,6 +76,7 @@
 
 
                 <div class="seemorebtn view-btn"
+                     data-section-id="{{ section.id }}"
                      data-title="{{ section.title }}"
                      data-description="{{ section.description }}"
                      data-category="{{ section.category }}"
@@ -135,6 +136,17 @@
 </div>
 
 <script>
+// Log file download and view tracking
+function logDownload(sectionId) {
+    fetch(`/log-view/${sectionId}/`)
+        .catch(err => console.log('Download logged'));
+}
+
+function logSectionView(sectionId) {
+    fetch(`/log-view/${sectionId}/`)
+        .catch(err => console.log('View logged'));
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     const modal = document.getElementById("sectionModal");
     const closeBtn = document.querySelector(".close");
@@ -145,7 +157,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const modalAttachmentContainer = document.getElementById("modalAttachmentContainer");
     const modalLinkContainer = document.getElementById("modalLinkContainer");
 
-    // View modal
+    // View modal and log the view
     document.querySelectorAll(".view-btn").forEach(btn => {
         btn.addEventListener("click", function () {
             const title = this.dataset.title;
@@ -155,6 +167,12 @@ document.addEventListener('DOMContentLoaded', function () {
             const attachment = this.dataset.attachment;
             const attachmentName = this.dataset.attachmentname;
             const link = this.dataset.link;
+            const sectionId = this.dataset.sectionId;
+
+            // Log the view
+            if (sectionId) {
+                logSectionView(sectionId);
+            }
 
             modalTitle.textContent = title;
             modalCategory.textContent = "Category: " + category;
