@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm
-from .models import Section, Category, Quiz, Question, Answer, MinasaProduct, MinigameLevel, QuizAttempt, MinigameAttempt
+from .models import Section, Category, Quiz, Question, Answer, MinasaProduct, MinigameLevel, QuizAttempt, MinigameAttempt, FileAccessLog
 from collections import defaultdict
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import AuthenticationForm
@@ -26,6 +26,7 @@ from io import BytesIO
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
+from django.db import models
 
 
 
@@ -213,6 +214,23 @@ def admin_dashboard(request):
     # Allow admin user access regardless of superuser status
     # Allow access if username is 'admin' OR if user is a superuser
     if request.user.username == 'admin' or request.user.is_superuser:
+        # Get file access analytics
+        total_file_views = FileAccessLog.objects.filter(access_type='view').count()
+        total_file_downloads = FileAccessLog.objects.filter(access_type='download').count()
+        
+        # Get recent file access logs (last 7 days)
+        from datetime import timedelta
+        seven_days_ago = timezone.now() - timedelta(days=7)
+        recent_accesses = FileAccessLog.objects.filter(accessed_at__gte=seven_days_ago).order_by('-accessed_at')[:10]
+        
+        # Get most popular sections (by views)
+        popular_sections = Section.objects.annotate(
+            view_count=models.Count('access_logs', filter=models.Q(access_logs__access_type='view'))
+        ).order_by('-view_count')[:5]
+        
+        # Get user access stats
+        active_users_with_access = FileAccessLog.objects.values('user').distinct().count()
+        
         context = {
             'total_users': User.objects.count(),
             'total_educational_sections': Section.objects.count(),
@@ -221,6 +239,12 @@ def admin_dashboard(request):
             'total_minasa_products': MinasaProduct.objects.count(),
             'total_quizzes': Quiz.objects.count(),
             'total_minigame_levels': MinigameLevel.objects.count(),
+            # Analytics data
+            'total_file_views': total_file_views,
+            'total_file_downloads': total_file_downloads,
+            'recent_accesses': recent_accesses,
+            'popular_sections': popular_sections,
+            'active_users_with_access': active_users_with_access,
         }
         return render(request, 'adminpage/admin-dashboard.html', context)
     else:
@@ -252,9 +276,85 @@ def educationalsection(request):
     
     grouped_sections = dict(grouped_sections)
     
+    # Log view access if user is authenticated
+    if request.user.is_authenticated:
+        for section in sections:
+            # Log a view for each section (or you can modify to log only on demand)
+            pass
+    
     return render(request, "users/educationalsection.html", {
         "grouped_sections": grouped_sections
     })
+
+
+def log_file_access(request, section_id, access_type='view'):
+    """
+    Utility function to log file access (view or download)
+    access_type should be 'view' or 'download'
+    """
+    if not request.user.is_authenticated:
+        return
+    
+    try:
+        section = Section.objects.get(id=section_id)
+        ip_address = get_client_ip(request)
+        user_agent = request.META.get('HTTP_USER_AGENT', '')
+        
+        FileAccessLog.objects.create(
+            section=section,
+            user=request.user,
+            access_type=access_type,
+            ip_address=ip_address,
+            user_agent=user_agent
+        )
+    except Section.DoesNotExist:
+        pass
+
+
+def get_client_ip(request):
+    """Get client IP address from request"""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+
+@login_required
+def download_attachment(request, section_id):
+    """Download file attachment and log the download"""
+    try:
+        section = Section.objects.get(id=section_id)
+        
+        if not section.attachment:
+            messages.error(request, "No attachment available for this section.")
+            return redirect('educationalsection')
+        
+        # Log the download
+        log_file_access(request, section_id, 'download')
+        
+        # Serve the file for download
+        file_path = section.attachment.path
+        file_name = section.attachment.name.split('/')[-1]
+        
+        response = HttpResponse(open(file_path, 'rb'), content_type='application/octet-stream')
+        response['Content-Disposition'] = f'attachment; filename="{file_name}"'
+        return response
+        
+    except Section.DoesNotExist:
+        messages.error(request, "Section not found.")
+        return redirect('educationalsection')
+    except Exception as e:
+        messages.error(request, f"Error downloading file: {str(e)}")
+        return redirect('educationalsection')
+
+
+@login_required
+def log_section_view(request, section_id):
+    """Log when user views a section"""
+    log_file_access(request, section_id, 'view')
+    return JsonResponse({'status': 'logged'})
 
 def home_view(request):
     return render(request, 'users/home.html')

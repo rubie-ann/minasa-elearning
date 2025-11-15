@@ -271,3 +271,30 @@ class MinigameAttempt(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - Level {self.level.id} {'(Completed)' if self.completed else '(Incomplete)'}"
+
+
+class FileAccessLog(models.Model):
+    """Model to track views and downloads of educational content files"""
+    ACCESS_TYPES = [
+        ('view', 'View'),
+        ('download', 'Download'),
+    ]
+    
+    section = models.ForeignKey(Section, on_delete=models.CASCADE, related_name='access_logs')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='file_access_logs')
+    access_type = models.CharField(max_length=10, choices=ACCESS_TYPES)
+    accessed_at = models.DateTimeField(auto_now_add=True)
+    ip_address = models.GenericIPAddressField(blank=True, null=True)
+    user_agent = models.TextField(blank=True, null=True)
+
+    class Meta:
+        ordering = ['-accessed_at']
+        verbose_name = "File Access Log"
+        verbose_name_plural = "File Access Logs"
+        indexes = [
+            models.Index(fields=['section', '-accessed_at']),
+            models.Index(fields=['user', '-accessed_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.section.title} ({self.access_type})"
