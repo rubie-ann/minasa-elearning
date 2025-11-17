@@ -419,7 +419,7 @@ def log_section_view(request, section_id):
     return JsonResponse({'status': 'logged' if request.user.is_authenticated else 'skipped'})
 
 def home_view(request):
-    return render(request, 'users/home.html')
+    return render(request, 'users/home.html', {'MEDIA_URL': settings.MEDIA_URL})
 def search_view(request):
     return render(request, 'users/search.html')
 
@@ -478,12 +478,6 @@ def activities_view(request):
         'minigame_data': minigame_data,
     }
     return render(request, 'users/activities.html', context)
-
-
-
-
-def find_minasa(request):
-    return render(request, 'users/find_minasa.html')
 
 # def festival_calendar(request):
 #     selected_type = request.GET.get('type', 'All')

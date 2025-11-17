@@ -167,7 +167,7 @@
     display: none; /* mobile menu hidden by default */
   }
 
-  .nav-links.show { display: flex; } /* toggled state */
+  body.nav-open .nav-links { display: flex; } /* toggled state */
 
   .nav-toggle {
     display: flex; /* show menu button */
@@ -222,10 +222,10 @@
 <script>
   document.addEventListener("DOMContentLoaded", () => {
   const toggle = document.querySelector(".nav-toggle");
-  const links = document.querySelector(".nav-links");
 
   toggle.addEventListener("click", () => {
-    links.classList.toggle("show");
+    document.body.classList.toggle("nav-open");
+    toggle.setAttribute('aria-expanded', document.body.classList.contains('nav-open'));
   });
 });
 

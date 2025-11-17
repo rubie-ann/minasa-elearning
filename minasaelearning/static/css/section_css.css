@@ -622,6 +622,7 @@ body {
     cursor: pointer;
 }
 
+
 .btn-primary:hover {
   background: #fbbf24;
   color: black;
@@ -637,6 +638,8 @@ body {
     border-radius: 8px;
     cursor: pointer;
 }
+
+
 
 /* .btn-secondary:hover {
   background: #fbbf24;
@@ -789,15 +792,16 @@ body {
     align-items: center;
     position: relative;
     text-align: center;
-    color: #fff;
 }
 
-.about-hero::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-}
+ .about-hero::after {
+     content: "";
+     position: absolute;
+     inset: 0;
+    /* background: rgba(0, 0, 0, 0.3); */
+     z-index: 1;
+     color: black;
+ }
 
 .about-hero-content {
     position: relative;
@@ -815,7 +819,7 @@ body {
 .about-hero-content p {
     font-size: 1.1rem;
     margin-top: 15px;
-    color: #fff;
+    color: gray;
     line-height: 1.8;
 }
 
