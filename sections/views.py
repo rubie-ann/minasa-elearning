@@ -297,6 +297,25 @@ def admin_dashboard(request):
 def admin_profile(request):
     # Simple admin profile page; allow admin or superuser only
     if request.user.username == 'admin' or request.user.is_superuser:
+        # Allow updating basic profile fields (first_name, last_name, email)
+        if request.method == 'POST':
+            first_name = (request.POST.get('first_name') or '').strip()
+            last_name = (request.POST.get('last_name') or '').strip()
+            email = (request.POST.get('email') or '').strip()
+
+            user = request.user
+            user.first_name = first_name
+            user.last_name = last_name
+            # Only update email if provided
+            if email:
+                user.email = email
+            try:
+                user.save()
+                messages.success(request, 'Profile updated successfully.')
+            except Exception as e:
+                messages.error(request, f'Error saving profile: {e}')
+
+            # Re-render the same admin profile page (do not redirect to regular user account)
         context = {
             'user': request.user,
             'MEDIA_URL': settings.MEDIA_URL,

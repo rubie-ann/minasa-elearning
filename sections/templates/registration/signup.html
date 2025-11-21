@@ -23,7 +23,7 @@
     }
     .left {
       flex: 1;
-      background: #d4a574;
+      background: #ffc107;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -90,7 +90,7 @@
     .input-group input {
       width: 100%;
       padding: 14px 16px 14px 45px;
-      border: 1.5px solid #d4a574;
+      border: 1.5px solid #ffc107;
       border-radius: 7px;
       font-size: 15px;
       outline: none;
@@ -106,14 +106,14 @@
       left: 16px;
       top: 50%;
       transform: translateY(-50%);
-      color: #d4a574;
+      color: #ffc107;
       font-size: 17px;
     }
     .signup-btn {
       width: 100%;
-      background: #d4a574;
+      background: #ffc107;
       color: #5c3d1f;
-      border: 1.5px solid #d4a574;
+      border: 1.5px solid #ffc107;
       border-radius: 7px;
       padding: 14px 0;
       font-size: 17px;
@@ -203,7 +203,7 @@
       line-height: 1.5;
     }
     .success-modal-btn {
-      background: #d4a574;
+      background: #ffc107;
       color: #5c3d1f;
       border: none;
       padding: 12px 30px;
@@ -217,17 +217,28 @@
       background: #5c3d1f;
       color: white;
     }
+    /* Show help text and validation errors so users can see form feedback */
     .help-text {
-      display: none;
+      display: block;
+      color: #666;
+      font-size: 13px;
+      margin-top: 6px;
+    }
+    /* utility class to hide help text when desired (keeps markup present for accessibility/JS) */
+    .help-text.hidden {
+      display: none !important;
     }
     ul {
-      display: none;
+      display: block;
     }
     li {
-      display: none;
+      display: list-item;
     }
     .errorlist {
-      display: none;
+      display: block;
+      color: #dc3545;
+      margin-top: 6px;
+      font-size: 13px;
     }
     @media (max-width: 768px) {
       .container {
@@ -278,37 +289,45 @@
           
           <div class="input-group">
             <i class="fa fa-user"></i>
-            <input type="text" name="username" id="id_username" placeholder="Username" required>
+            <input type="text" name="username" id="id_username" placeholder="Username" required value="{{ form.data.username|default:'' }}">
             {% if form.username.errors %}
               <span class="error-message">{{ form.username.errors.0 }}</span>
             {% endif %}
             {% if form.username.help_text %}
-              <div class="help-text" style="display: none;">{{ form.username.help_text|safe }}</div>
+              <!-- hide default username help text (use .hidden to keep markup available) -->
+              <div class="help-text hidden">{{ form.username.help_text|safe }}</div>
             {% endif %}
           </div>
           
           <div class="input-group">
             <i class="fa fa-id-card"></i>
-            <input type="text" name="first_name" id="id_first_name" placeholder="First Name">
+            <input type="text" name="first_name" id="id_first_name" placeholder="First Name" value="{{ form.data.first_name|default:'' }}">
+            {% if form.first_name.errors %}
+              <span class="error-message">{{ form.first_name.errors.0 }}</span>
+            {% endif %}
           </div>
           
           <div class="input-group">
             <i class="fa fa-id-card"></i>
-            <input type="text" name="last_name" id="id_last_name" placeholder="Last Name">
+            <input type="text" name="last_name" id="id_last_name" placeholder="Last Name" value="{{ form.data.last_name|default:'' }}">
+            {% if form.last_name.errors %}
+              <span class="error-message">{{ form.last_name.errors.0 }}</span>
+            {% endif %}
           </div>
           
           <div class="input-group">
             <i class="fa fa-lock"></i>
             <input type="password" name="password1" id="id_password1" placeholder="Password" required>
             {% if form.password1.errors %}
-              <div class="error-message" style="display: none;">
+              <div class="error-message">
                 {% for error in form.password1.errors %}
                   {{ error }}<br>
                 {% endfor %}
               </div>
             {% endif %}
             {% if form.password1.help_text %}
-              <div class="help-text" style="display: none;">{{ form.password1.help_text|safe }}</div>
+              <!-- hide default password validation help to reduce clutter -->
+              <div class="help-text hidden">{{ form.password1.help_text|safe }}</div>
             {% endif %}
           </div>
           
@@ -316,14 +335,15 @@
             <i class="fa fa-lock"></i>
             <input type="password" name="password2" id="id_password2" placeholder="Confirm Password" required>
             {% if form.password2.errors %}
-              <div class="error-message" style="display: none;">
+              <div class="error-message">
                 {% for error in form.password2.errors %}
                   {{ error }}<br>
                 {% endfor %}
               </div>
             {% endif %}
             {% if form.password2.help_text %}
-              <div class="help-text" style="display: none;">{{ form.password2.help_text|safe }}</div>
+              <!-- hide password confirmation help text -->
+              <div class="help-text hidden">{{ form.password2.help_text|safe }}</div>
             {% endif %}
           </div>
           
