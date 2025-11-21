@@ -21,13 +21,13 @@ from reportlab.lib.utils import simpleSplit
 from .models import Section
 from reportlab.platypus import Table, TableStyle, Paragraph, SimpleDocTemplate, Spacer
 from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from io import BytesIO
-from django.contrib.auth.models import User
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from django.db import models
-
+from django.utils.timezone import now
+from zoneinfo import ZoneInfo
 
 
 
@@ -178,7 +178,7 @@ def user_management(request):
         superuser_count = base_qs.filter(is_superuser=True).count()
         staff_count = base_qs.filter(is_staff=True).count()
         regular_user_count = base_qs.filter(is_staff=False, is_superuser=False).count()
-        active_users = base_qs.filter(is_active=True).count()
+        # active_users = base_qs.filter(is_active=True).count()
         
         # Count blocked users
         blocked_users = 0
@@ -186,6 +186,7 @@ def user_management(request):
             if hasattr(user, 'profile') and user.profile.is_blocked():
                 blocked_users += 1
         
+        active_users = base_qs.count() - blocked_users
         # Count new users today (excluding admin)
         from datetime import date
         today = date.today()
@@ -296,6 +297,25 @@ def admin_dashboard(request):
 def admin_profile(request):
     # Simple admin profile page; allow admin or superuser only
     if request.user.username == 'admin' or request.user.is_superuser:
+        # Allow updating basic profile fields (first_name, last_name, email)
+        if request.method == 'POST':
+            first_name = (request.POST.get('first_name') or '').strip()
+            last_name = (request.POST.get('last_name') or '').strip()
+            email = (request.POST.get('email') or '').strip()
+
+            user = request.user
+            user.first_name = first_name
+            user.last_name = last_name
+            # Only update email if provided
+            if email:
+                user.email = email
+            try:
+                user.save()
+                messages.success(request, 'Profile updated successfully.')
+            except Exception as e:
+                messages.error(request, f'Error saving profile: {e}')
+
+            # Re-render the same admin profile page (do not redirect to regular user account)
         context = {
             'user': request.user,
             'MEDIA_URL': settings.MEDIA_URL,
@@ -418,7 +438,7 @@ def log_section_view(request, section_id):
     return JsonResponse({'status': 'logged' if request.user.is_authenticated else 'skipped'})
 
 def home_view(request):
-    return render(request, 'users/home.html')
+    return render(request, 'users/home.html', {'MEDIA_URL': settings.MEDIA_URL})
 def search_view(request):
     return render(request, 'users/search.html')
 
@@ -477,12 +497,6 @@ def activities_view(request):
         'minigame_data': minigame_data,
     }
     return render(request, 'users/activities.html', context)
-
-
-
-
-def find_minasa(request):
-    return render(request, 'users/find_minasa.html')
 
 # def festival_calendar(request):
 #     selected_type = request.GET.get('type', 'All')
@@ -1450,75 +1464,94 @@ def generate_content_report(request):
     category = request.POST.get('category', 'all').lower()
 
     sections = Section.objects.all()
-
     if search:
         sections = sections.filter(title__icontains=search)
     if category != 'all':
         sections = sections.filter(category__iexact=category)
 
-    # Create the PDF response
+    # PDF response
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="educational_sections_report.pdf"'
 
     p = canvas.Canvas(response, pagesize=letter)
     p.setTitle("Educational Sections Report")
     p.setAuthor("Minasa E-Learning System")
-    p.setSubject("Generated Educational Content Report")
-    width, height = letter
-    y = height - 80
 
-    # Header
+    width, height = letter
+    y = height - 40  # top margin
+
+    # Brand top-left
+    p.setFont("Helvetica-Bold", 18)
+    p.setFillColor(colors.HexColor("#b85c00"))
+    p.drawString(40, y, "MINASA")
+
+    p.setFont("Helvetica", 10)
+    p.setFillColor(colors.HexColor("#5e2217"))
+    p.drawString(40, y - 18, "E-Learning")
+
+    y -= 50  # space after brand
+
+    # Title centered
     p.setFont("Helvetica-Bold", 16)
+    p.setFillColor(colors.black)
     p.drawCentredString(width / 2, y, "Educational Sections Report")
     y -= 40
 
-    # Body
     for section in sections:
-        if y < 120:
+        if y < 150:
             p.showPage()
             y = height - 60
-            p.setFont("Helvetica", 12)
 
-        # Title (bold)
-        p.setFont("Helvetica-Bold", 12)
-        p.drawString(50, y, section.title)
-        y -= 15
+        # Header
+        header_bg = colors.HexColor("#ffe5d4")   
+        header_text = colors.HexColor("#b85c00") 
 
-        # Category
-        p.setFont("Helvetica", 11)
-        p.drawString(50, y, f"Category: {section.category}")
-        y -= 15
+        p.setFillColor(header_bg)
+        p.rect(40, y - 5, width - 80, 25, fill=1, stroke=0)
 
-        # Description (wrapped text)
+        p.setFillColor(header_text)
+        p.setFont("Helvetica-Bold", 11)
+        p.drawString(50, y + 2, section.title)
+        p.drawRightString(width - 50, y + 2, section.category)
+
+        y -= 18
+
+        # Description
+        text = section.description or "No description available."
+        wrapped = simpleSplit(text, "Helvetica", 10, width - 100)
+        box_height = 14 * len(wrapped) + 10
+
+        p.setFillColor(colors.white)
+        p.rect(40, y - box_height + 10, width - 80, box_height, fill=1, stroke=0)
+
+        p.setFillColor(colors.black)
         p.setFont("Helvetica", 10)
-        text = section.description if section.description else "No description available."
-        wrapped_text = simpleSplit(text, "Helvetica", 10, width - 100)  # wrap width
-        for line in wrapped_text:
-            if y < 100:
-                p.showPage()
-                y = height - 60
-                p.setFont("Helvetica", 10)
-            p.drawString(50, y, line)
-            y -= 12
+        t_y = y
+        for line in wrapped:
+            p.drawString(50, t_y, line)
+            t_y -= 14
 
-        y -= 15  # space before next section
+        y -= box_height + 15
+
+    # Generated timestamp bottom-right
+    ph_time = now().astimezone(ZoneInfo("Asia/Manila")).strftime("%B %d, %Y %I:%M %p")
+    p.setFont("Helvetica", 9)
+    p.setFillColor(colors.HexColor("#5e2217"))
+    p.drawRightString(width - 40, 30, f"Generated by system · {ph_time}")
 
     p.showPage()
     p.save()
     return response
 
+@login_required
 def generate_user_report(request):
-    from io import BytesIO
-    from django.http import HttpResponse
-    from reportlab.lib import colors
-    from reportlab.lib.pagesizes import letter
-    from reportlab.lib.styles import getSampleStyleSheet
     from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-    from django.contrib.auth.models import User
-    from datetime import datetime
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib import colors
+    from io import BytesIO
 
     # Fetch users
-    users = User.objects.all()
+    users = User.objects.filter(is_superuser=False, is_staff=False).select_related('profile')
 
     # PDF buffer
     buffer = BytesIO()
@@ -1526,11 +1559,36 @@ def generate_user_report(request):
         buffer,
         pagesize=letter,
         title="User Management Report",
-        author="Minasa E-Learning System"
+        author="Minasa E-Learning System",
+        topMargin=30
     )
 
     elements = []
     styles = getSampleStyleSheet()
+
+    # Brand at the top
+    brand_style = ParagraphStyle(
+        name="brand",
+        fontName="Helvetica-Bold",
+        fontSize=18,
+        leading=20,
+        textColor=colors.HexColor("#b85c00"),
+        leftIndent=40
+    )
+    subbrand_style = ParagraphStyle(
+        name="subbrand",
+        fontName="Helvetica",
+        fontSize=10,
+        textColor=colors.HexColor("#5e2217"),
+        leftIndent=40
+    )
+
+    brand = Paragraph("<b>MINASA</b>", brand_style)
+    subbrand = Paragraph("E-Learning", subbrand_style)
+
+    elements.append(brand)
+    elements.append(subbrand)
+    elements.append(Spacer(1, 8))
 
     # Title
     title = Paragraph("<b>User Management Report</b>", styles['Title'])
@@ -1538,53 +1596,167 @@ def generate_user_report(request):
     elements.append(Spacer(1, 10))
 
     # Table headers
-    data = [["Username", "Email address", "First Name", "Last Name", "Staff", "Superuser", "Date Joined"]]
+    data = [["First Name", "Last Name", "Email", "Status", "Date Joined"]]
 
-    # Table rows
     for user in users:
-        staff_status = "Yes" if user.is_staff else "No"
-        superuser_status = "Yes" if user.is_superuser else "No"
+        # Admin override: always Active
+        if user.is_superuser or user.is_staff:
+            status = "Active"
+        else:
+            # Normal user logic
+            status = "Blocked" if hasattr(user, 'profile') and user.profile.is_blocked() else "Active"
+
         date_joined = user.date_joined.strftime("%b %d, %Y")
 
         data.append([
-            user.username,
-            user.email or "No email",
             user.first_name or "-",
             user.last_name or "-",
-            staff_status,
-            superuser_status,
+            user.email or "No email",
+            status,
             date_joined
         ])
 
     # Create the table
-    table = Table(data, repeatRows=1, colWidths=[80, 150, 80, 80, 60, 60, 80])
-
-    # Style the table
+    table = Table(data, repeatRows=1, colWidths=[80, 80, 150, 70, 80])
     table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#f97316")),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#ffe5d4")),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor("#b85c00")),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
         ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
         ('FONTSIZE', (0, 0), (-1, -1), 9),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
         ('TOPPADDING', (0, 0), (-1, -1), 4),
-        ('GRID', (0, 0), (-1, -1), 0, colors.white),
-        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.whitesmoke, colors.lightgrey])
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor("#fff8dc")]),
+        ('GRID', (0, 0), (-1, -1), 0, colors.white)
     ]))
 
     elements.append(table)
+    elements.append(Spacer(1, 20))
+
+    # Generated timestamp on right side
+    ph_time = now().astimezone(ZoneInfo("Asia/Manila")).strftime("%B %d, %Y %I:%M %p")
+    generated_style = ParagraphStyle(
+        name="generated",
+        fontName="Helvetica",
+        fontSize=9,
+        alignment=2,  # Right align
+        textColor=colors.HexColor("#5e2217")
+    )
+    generated_text = Paragraph(f"Generated by system · {ph_time}", generated_style)
+    elements.append(generated_text)
+
+    # Build PDF
     doc.build(elements)
 
-    # Date generated
-    gen_date = datetime.now().strftime("%B %d, %Y - %I:%M %p")
-    elements.append(Paragraph(f"Generated on: {gen_date}", styles['Normal']))
-    elements.append(Spacer(1, 20))
-    
-    # Return PDF
     buffer.seek(0)
     response = HttpResponse(buffer, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="user_report.pdf"'
     return response
+
+
+@login_required
+def generate_user_performance_report(request):
+    """Generate PDF report of user performance with quizzes and minigames."""
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.pdfbase.cidfonts import UnicodeCIDFont
+    from django.utils.timezone import now
+    from zoneinfo import ZoneInfo
+
+    users = User.objects.exclude(username='admin').order_by('-date_joined')
+
+    total_quizzes = Quiz.objects.count()
+    total_minigame_levels = MinigameLevel.objects.count()
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=letter,
+        title="User Performance Report",
+        author="Minasa E-Learning System",
+        topMargin=30
+    )
+
+    elements = []
+    styles = getSampleStyleSheet()
+
+    brand_style = ParagraphStyle(
+        name="brand",
+        fontName="Helvetica-Bold",
+        fontSize=18,
+        leading=20,
+        textColor=colors.HexColor("#b85c00"),
+        leftMargin=40,
+    )
+    subbrand_style = ParagraphStyle(
+        name="subbrand",
+        fontName="Helvetica",
+        fontSize=10,
+        textColor=colors.HexColor("#5e2217"),
+        lleftMargin=40,
+    )
+
+    brand = Paragraph("<b>MINASA</b>", brand_style)
+    subbrand = Paragraph("E-Learning", subbrand_style)
+
+    elements.append(brand)
+    elements.append(subbrand)
+    elements.append(Spacer(1, 8))
+
+    title = Paragraph("<b>User Performance Report</b>", styles['Title'])
+    elements.append(title)
+    elements.append(Spacer(1, 12))
+
+    data = [["No.", "Username", "First Name", "Last Name", "Quizzes Completed", "Minigame Levels Completed"]]
+
+    for idx, user in enumerate(users, start=1):
+        quizzes_completed = QuizAttempt.objects.filter(user=user).values('quiz').distinct().count()
+        minigames_completed = MinigameAttempt.objects.filter(user=user, completed=True).count()
+
+        data.append([
+            str(idx),
+            user.username,
+            user.first_name or "-",
+            user.last_name or "-",
+            f"{quizzes_completed}/{total_quizzes}",
+            f"{minigames_completed}/{total_minigame_levels}"
+        ])
+
+    table = Table(data, repeatRows=1, colWidths=[30, 100, 80, 80, 100, 130])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#ffe5d4")),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor("#b85c00")),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('TOPPADDING', (0, 0), (-1, -1), 4),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor("#fff8dc")]),
+        ('GRID', (0, 0), (-1, -1), 0, colors.white)
+    ]))
+
+    elements.append(table)
+    elements.append(Spacer(1, 20))
+    
+    ph_time = now().astimezone(ZoneInfo("Asia/Manila")).strftime("%B %d, %Y %I:%M %p")
+    generated_style = ParagraphStyle(
+        name="generated",
+        fontName="Helvetica",
+        fontSize=9,
+        alignment=2,
+        textColor=colors.HexColor("#5e2217")
+    )
+
+    generated_text = Paragraph(f"Generated by system · {ph_time}", generated_style)
+    elements.append(generated_text)
+
+    doc.build(elements)
+
+    buffer.seek(0)
+    response = HttpResponse(buffer, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename=\"user_performance_report.pdf\"'
+    return response
+
+
 
 
 @login_required

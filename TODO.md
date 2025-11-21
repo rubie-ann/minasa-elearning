@@ -1,0 +1,3 @@
+- [x] Update home.html: Remove background from .hero style
+- [x] Add slideshow HTML inside hero section
+- [x] Add CSS for slideshow animation (keyframes for opacity)

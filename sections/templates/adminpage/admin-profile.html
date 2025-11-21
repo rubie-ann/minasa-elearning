@@ -5,10 +5,41 @@
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/adminside.css' %}">
+<style>body{margin: 0;
+padding: 0;
+overflow-y: hidden;
+overflow-x: hidden;
+}</style>
+<div class="admin-sidebar">
+	<div class="sidebar-header">
+		<div class="logo-container">
+			<img src="/media/images/logo.png" alt="Minasa Festival Logo" style="max-width: 80px; height: auto;" />
+		</div>
+		<h2>Admin Panel</h2>
+	</div>
+	<ul class="admin-nav">
+	<li><a href="{% url 'adminpage-admin-dashboard' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+		<li><a href="{% url 'adminpage-user-management' %}"><i class="fas fa-users"></i> User Management</a></li>
+		<li><a href="{% url 'adminpage-user-performance' %}"><i class="fas fa-chart-line"></i> User Performance</a></li>
+		<li><a href="{% url 'adminpage-content-manager' %}"><i class="fas fa-layer-group"></i> Content Manager</a></li>
+		<li><a href="{% url 'adminpage-minasa-products' %}"><i class="fas fa-shopping-bag"></i> Minasa Products</a></li>
+		<li><a href="{% url 'adminpage-activities' %}"><i class="fas fa-calendar"></i> Activities</a></li>
+		<li><a href="{% url 'adminpage-festival-calendar' %}"><i class="fas fa-star"></i> Events</a></li>
+		<li><a href="{% url 'adminpage-admin-profile' %}" class="active"><i class="fas fa-user-circle"></i> Profile</a></li>
+	</ul>
+	<div class="admin-actions">
+		<div class="admin-user-info">
+			<p><strong>{{ user.username }}</strong></p>
+			<p>{{ user.email|default:"No email" }}</p>
+		</div>
+		<form method="post" action="{% url 'logout' %}">
+			{% csrf_token %}
+			<button type="submit" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</button>
+		</form>
+	</div>
+</div>
 
-<div class="admin-sidebar" style="display: none;"></div>
-
-<div class="admin-content">
+<div class="admin-content" style="width: 113%;margin-left: 3rem;margin-top: -2rem;margin-bottom: -200px;">
 	<div class="admin-header">
 		<h1>Admin Profile</h1>
 	</div>
@@ -16,11 +47,35 @@
 	<section class="panel">
 		<h2>Profile Details</h2>
 		<div style="padding: 20px; background: #fff; border-radius: 8px;">
-			<p><strong>Username:</strong> {{ user.username }}</p>
-			<p><strong>Email:</strong> {{ user.email|default:"No email" }}</p>
-			<p><strong>First Name:</strong> {{ user.first_name|default:"-" }}</p>
-			<p><strong>Last Name:</strong> {{ user.last_name|default:"-" }}</p>
-			<p><a href="{% url 'profile' %}" class="btn btn-secondary"><i class="fas fa-edit"></i> Edit Profile</a></p>
+			{% if messages %}
+				{% for message in messages %}
+					<div class="alert {% if message.tags %}{{ message.tags }}{% endif %}" style="margin-bottom:10px;padding:8px;border-radius:4px;background:#f1f1f1;">{{ message }}</div>
+				{% endfor %}
+			{% endif %}
+
+			<form method="post" action="">
+				{% csrf_token %}
+				<div style="margin-bottom:12px;">
+					<label for="username"><strong>Username</strong></label><br>
+					<input id="username" name="username" type="text" value="{{ user.username }}" readonly style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;" />
+				</div>
+				<div style="margin-bottom:12px;">
+					<label for="email"><strong>Email</strong></label><br>
+					<input id="email" name="email" type="email" value="{{ user.email }}" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px; " disabled />
+				</div>
+				<div style="margin-bottom:12px;">
+					<label for="first_name"><strong>First Name</strong></label><br>
+					<input id="first_name" name="first_name" type="text" value="{{ user.first_name }}" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;" />
+				</div>
+				<div style="margin-bottom:12px;">
+					<label for="last_name"><strong>Last Name</strong></label><br>
+					<input id="last_name" name="last_name" type="text" value="{{ user.last_name }}" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;" />
+				</div>
+				<div style="display:flex;gap:8px;align-items:center;">
+					<button type="submit" class="btn btn-primary" style="padding:8px 14px;border-radius:6px;background:#007bff;color:#fff;border:none;">Save Changes</button>
+					<a href="{% url 'password_change' %}" class="btn btn-secondary" style="padding:8px 14px;border-radius:6px;border:1px solid #ddd;background:#fff;color:#333;text-decoration:none;">Change Password</a>
+				</div>
+			</form>
 		</div>
 	</section>
     

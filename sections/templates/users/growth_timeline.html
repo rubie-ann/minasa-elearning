@@ -80,10 +80,109 @@
 .detail-body .month-range { color: #b8813d; font-weight: 600; margin-bottom: 8px; }
 .detail-body p { color: #444; line-height: 1.6; text-align: justify; }
 
+
 @media (max-width: 850px) {
-  .timeline-detail { flex-direction: column; text-align: center; }
-  .timeline-detail img { width: 100%; height: auto; }
+  .timeline-wrapper {
+    padding-left: 20px;
+    position: relative;
+  }
+
+  /* Reorder elements in the timeline-detail for mobile */
+  .timeline-detail {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-left: 40px; /* space between timeline and content */
+    margin-top: 20px;
+  }
+
+  .timeline-detail img {
+    order: -1;
+    width: 100%;
+    height: auto;
+    margin-bottom: 15px;
+  }
+
+  .detail-body {
+    width: 100%;
+  }
+
+  .detail-body h3 {
+    margin-top: 10px;
+    margin-bottom: 5px;
+  }
+
+  .detail-body .month-range {
+    margin-bottom: 10px;
+  }
+
+  /* Vertical timeline layout */
+  .timeline-track {
+    width: 6px;
+    height: 100%;
+    min-height: 300px;
+    position: absolute;
+    left: 0;
+    top: 10px;
+    background: #eee;
+    border-radius: 6px;
+    margin-top: -10px;
+    margin-left: 2px;
+  }
+
+  .timeline-progress {
+    width: 100%;
+    height: 0%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    transition: height 0.3s ease;
+  }
+
+  .timeline-nodes {
+    flex-direction: column;
+    position: absolute;
+    left: -7px;
+    top: 0;
+    height: 100%;
+    justify-content: space-between;
+    margin: 0;
+  }
+
+  .timeline-wrapper {
+    min-height: 350px;
+    padding-left: 30px;
+    padding-top: 0;
+  }
+
+  .nav-links {
+    position: absolute;
+    top: 60px;
+    right: 0;
+    background: white;
+    width: 100%;
+    flex-direction: column;
+    padding: 12px 20px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    display: none; /* mobile menu hidden by default */
+  }
+
+  body.nav-open .nav-links { display: flex; } /* toggled state */
+
+  .nav-toggle {
+    display: flex; /* show menu button */
+  }
+
+  /* Adjust profile and brand alignment */
+  .nav-profile-pic {
+    right: 15px;
+  }
+
+  .brand {
+    flex: 1; /* allows space for toggle and profile */
+  }
 }
+
 </style>
 
 <div class="timeline-page">
@@ -121,6 +220,15 @@
 </div>
 
 <script>
+  document.addEventListener("DOMContentLoaded", () => {
+  const toggle = document.querySelector(".nav-toggle");
+
+  toggle.addEventListener("click", () => {
+    document.body.classList.toggle("nav-open");
+    toggle.setAttribute('aria-expanded', document.body.classList.contains('nav-open'));
+  });
+});
+
 document.addEventListener("DOMContentLoaded", () => {
   const data = [
     {
@@ -159,7 +267,16 @@ document.addEventListener("DOMContentLoaded", () => {
   function setActive(i) {
     nodes.forEach(n => n.classList.remove("active"));
     nodes[i].classList.add("active");
-    progress.style.width = `${(i / (nodes.length - 1)) * 100}%`;
+    if (window.innerWidth <= 850) {
+      progress.style.height = `${(i / (nodes.length - 1)) * 100}%`;
+      progress.style.top = "0";   // Fill from the top
+      progress.style.bottom = "unset";
+      progress.style.width = "100%";
+    } else {
+      progress.style.width = `${(i / (nodes.length - 1)) * 100}%`;
+      progress.style.height = "100%";
+      progress.style.top = "unset";
+    }
     const d = data[i];
     img.src = d.image;
     title.textContent = d.title;
